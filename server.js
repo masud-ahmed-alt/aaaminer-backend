@@ -17,7 +17,7 @@ connectDB(dbURI);
 const app = express();
 app.use(express.json());
 
-app.use(cors({}));
+app.use(cors());
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
