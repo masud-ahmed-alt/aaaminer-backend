@@ -16,6 +16,7 @@ const sendToken = (resp, user, code, message) => {
     return resp.status(code).cookie(process.env.COOKIE_NAME, token, cookieOptions).json({
         success: true,
         user: userWithoutPassword,
+        token,
         message,
     })
 }
