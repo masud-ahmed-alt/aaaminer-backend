@@ -92,3 +92,15 @@ export const login = catchAsyncError(async (req, res, next) => {
 
   sendToken(res, user, 200, `Welcome  ${user.name}!`)
 })
+
+
+export const profile = catchAsyncError(async (req, res, next) => {
+  const user  = req.user;
+  const profile = await User.findById(user)
+ 
+  res.status(200).json({
+    success:true,
+    profile
+  })
+})
+

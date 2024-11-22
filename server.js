@@ -5,6 +5,9 @@ import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js'
 import cors from 'cors'
+import cookieParser from 'cookie-parser';
+
+const app = express();
 
 dotenv.config({
      path: ".env"
@@ -14,8 +17,9 @@ const dbURI = process.env.MONGO_URI
 
 connectDB(dbURI);
 
-const app = express();
+
 app.use(express.json());
+app.use(cookieParser())
 
 app.use(cors());
 
