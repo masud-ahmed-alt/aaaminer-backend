@@ -49,7 +49,7 @@ const sendEmail = async (email, subject, message) => {
 };
 
 const getAvailableTasks = async (userId) => {
-    return await Task.find({ completedBy: { $ne: userId } })
+    return await Task.find({ completedBy: { $ne: userId } }).select("-completedBy")
 };
 
 
