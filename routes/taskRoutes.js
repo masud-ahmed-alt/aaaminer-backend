@@ -1,11 +1,13 @@
 import express from 'express';
-import { completeTask } from '../controllers/taskController.js';
-import authMiddleware from '../middlewares/authMiddleware.js';
+import { completeTask, getUserTasks } from '../controllers/taskController.js';
+import {isAuthenticated} from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // Middleware to protect routes
-router.use(authMiddleware);
+router.use(isAuthenticated);
+
+router.get("/get-tasks", getUserTasks)
 
 // Complete a task
 router.post('/complete', completeTask);

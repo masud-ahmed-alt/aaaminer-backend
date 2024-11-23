@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import nodemailer from 'nodemailer';
+import Task from "../models/Task.js";
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
     sameSite: "none",
@@ -47,8 +48,13 @@ const sendEmail = async (email, subject, message) => {
     }
 };
 
+const getAvailableTasks = async (userId) => {
+    return await Task.find({ completedBy: { $ne: userId } })
+};
+
 
 export {
     sendToken, sendEmail,
-    cookieOptions
+    cookieOptions,
+    getAvailableTasks
 }

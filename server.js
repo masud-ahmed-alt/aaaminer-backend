@@ -6,6 +6,7 @@ import taskRoutes from './routes/taskRoutes.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
+import { taskCron } from './automation/cron.js';
 
 const app = express();
 
@@ -16,12 +17,13 @@ dotenv.config({
 const dbURI = process.env.MONGO_URI
 
 connectDB(dbURI);
-
+taskCron()
 
 app.use(express.json());
 app.use(cookieParser())
 
 app.use(cors());
+
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
