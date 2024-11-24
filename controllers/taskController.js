@@ -32,7 +32,7 @@ export const getUserTasks = async (req, res, next) => {
     if (!userId) return next(new ErrorHandler('User ID is required', 400))
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
-      return next(new ErrorHandler("Task not found! Please comeback after sometimes!"))
+      return next(new ErrorHandler("Task not found! Please comeback after sometimes!",404))
     res.status(200).json({tasks});
   } catch (error) {
     console.error('Error fetching user tasks:', error);
