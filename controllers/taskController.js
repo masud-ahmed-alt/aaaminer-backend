@@ -33,7 +33,7 @@ export const getUserTasks = async (req, res, next) => {
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
       return next(new ErrorHandler("Task not found! Please comeback after sometimes!"))
-    res.status(200).json(tasks);
+    res.status(200).json({tasks});
   } catch (error) {
     console.error('Error fetching user tasks:', error);
     res.status(500).json({ message: 'Internal server error' });
