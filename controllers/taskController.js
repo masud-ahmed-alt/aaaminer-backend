@@ -3,6 +3,34 @@ import User from '../models/User.js';
 import { getAvailableTasks } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
+
+export const getRanking = async (req, res, next) => {
+  try {
+    const userid = req.user; 
+    const { type } = req.query; 
+
+    if(!type)
+      return next(new ErrorHandler("Please select type",400))
+
+    let users;
+
+    if (type === 'all') {
+      users = await User.find().select("username walletPoints");
+    } else if (type === 'friend') {
+      users = await User.find({referredBy:userid}).select("username walletPoints");
+    } 
+
+    res.status(200).json({
+      success: true,
+      users
+    })
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorHandler("Something went wrong",400));
+  }
+};
+
+
 export const generateDailyTasks = async () => {
   console.log("generateDailyTasks initiated");
 
@@ -17,7 +45,7 @@ export const generateDailyTasks = async () => {
   try {
     const tasks = Array.from({ length: 10 }, (_, i) => ({
       taskName: `Task ${i + 1}`,
-      rewardPoints: Math.floor(Math.random() * 50) + 10,
+      rewardPoints: Math.floor(Math.random() * 900) + 100, 
     }));
     await Task.insertMany(tasks);
   } catch (error) {
@@ -32,8 +60,8 @@ export const getUserTasks = async (req, res, next) => {
     if (!userId) return next(new ErrorHandler('User ID is required', 400))
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
-      return next(new ErrorHandler("Task not found! Please comeback after sometimes!",404))
-    res.status(200).json({tasks});
+      return next(new ErrorHandler("Task not found! Please comeback after sometimes!", 404))
+    res.status(200).json({ tasks });
   } catch (error) {
     console.error('Error fetching user tasks:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -1,5 +1,5 @@
 import express from 'express';
-import { completeTask, getUserTasks } from '../controllers/taskController.js';
+import { completeTask, getRanking, getUserTasks } from '../controllers/taskController.js';
 import {isAuthenticated} from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(isAuthenticated);
 
 router.get("/get-tasks", getUserTasks)
+router.get("/get-ranking", getRanking)
 
 // Complete a task
 router.post('/complete', completeTask);
