@@ -1,9 +1,11 @@
+import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import Task from '../models/Task.js';
 import User from '../models/User.js';
 import { getAvailableTasks } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
-export const getRanking = async (req, res, next) => {
+export const getRanking = catchAsyncError(async (req, res, next) => {
+
   try {
     const userid = req.user;
     const { type } = req.query;
@@ -15,9 +17,13 @@ export const getRanking = async (req, res, next) => {
     let users;
 
     if (type === 'all') {
-      users = await User.find().select("username walletPoints").sort({ walletPoints: -1 });
+      users = await User.find()
+        .select("username walletPoints")
+        .sort({ walletPoints: -1 });
     } else if (type === 'friend') {
-      users = await User.find({ referredBy: userid }).select("username walletPoints").sort({ walletPoints: -1 });
+      users = await User.find({ referredBy: userid })
+        .select("username walletPoints")
+        .sort({ walletPoints: -1 });
     }
 
     res.status(200).json({
@@ -28,11 +34,11 @@ export const getRanking = async (req, res, next) => {
     console.error(error);
     return next(new ErrorHandler("Something went wrong", 500));
   }
-};
+})
 
 
 
-export const generateDailyTasks = async () => {
+export const generateDailyTasks = catchAsyncError(async () => {
   console.log("generateDailyTasks initiated");
 
   try {
@@ -52,10 +58,10 @@ export const generateDailyTasks = async () => {
   } catch (error) {
     console.log("Error while creating: ", error);
   }
-};
+})
 
 
-export const getUserTasks = async (req, res, next) => {
+export const getUserTasks = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user;
     if (!userId) return next(new ErrorHandler('User ID is required', 400))
@@ -67,9 +73,9 @@ export const getUserTasks = async (req, res, next) => {
     console.error('Error fetching user tasks:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-};
+})
 
-export const completeTask = async (req, res, next) => {
+export const completeTask = catchAsyncError(async (req, res, next) => {
   try {
     const { taskId } = req.body;
     const userId = req.user;
@@ -105,5 +111,4 @@ export const completeTask = async (req, res, next) => {
     console.error("Error completing task:", error);
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
-};
-
+})

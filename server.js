@@ -30,5 +30,17 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 
 app.use(errorMiddleware)
+
+// Handle uncaught exceptions and rejections
+process.on('uncaughtException', (err) => {
+     console.error("Uncaught Exception: ", err);
+     process.exit(1); // Exit the process to ensure a clean state
+ });
+ 
+ process.on('unhandledRejection', (reason, promise) => {
+     console.error("Unhandled Rejection at: ", promise, "reason: ", reason);
+     process.exit(1); // Exit the process
+ });
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

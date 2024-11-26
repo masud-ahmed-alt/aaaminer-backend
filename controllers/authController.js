@@ -3,9 +3,7 @@ import { compare } from 'bcrypt';
 import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import User from '../models/User.js';
 import { sendToken } from '../utils/features.js';
-import generateToken from '../utils/generateToken.js';
 import { ErrorHandler } from '../utils/utility.js';
-// import sendMail from '../utils/sendMail.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } =
