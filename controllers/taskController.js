@@ -3,32 +3,33 @@ import User from '../models/User.js';
 import { getAvailableTasks } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
-
 export const getRanking = async (req, res, next) => {
   try {
-    const userid = req.user; 
-    const { type } = req.query; 
+    const userid = req.user;
+    const { type } = req.query;
 
-    if(!type)
-      return next(new ErrorHandler("Please select type",400))
+    if (!type) {
+      return next(new ErrorHandler("Please select a type", 400));
+    }
 
     let users;
 
     if (type === 'all') {
-      users = await User.find().select("username walletPoints");
+      users = await User.find().select("username walletPoints").sort({ walletPoints: -1 });
     } else if (type === 'friend') {
-      users = await User.find({referredBy:userid}).select("username walletPoints");
-    } 
+      users = await User.find({ referredBy: userid }).select("username walletPoints").sort({ walletPoints: -1 });
+    }
 
     res.status(200).json({
       success: true,
-      users
-    })
+      users,
+    });
   } catch (error) {
-    console.log(error);
-    return next(new ErrorHandler("Something went wrong",400));
+    console.error(error);
+    return next(new ErrorHandler("Something went wrong", 500));
   }
 };
+
 
 
 export const generateDailyTasks = async () => {
@@ -45,7 +46,7 @@ export const generateDailyTasks = async () => {
   try {
     const tasks = Array.from({ length: 10 }, (_, i) => ({
       taskName: `Task ${i + 1}`,
-      rewardPoints: Math.floor(Math.random() * 900) + 100, 
+      rewardPoints: Math.floor(Math.random() * 900) + 100,
     }));
     await Task.insertMany(tasks);
   } catch (error) {
