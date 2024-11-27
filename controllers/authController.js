@@ -60,13 +60,13 @@ export const register = catchAsyncError(async (req, res, next) => {
       email,
       username,
       password,
-      walletPoints: referal ? 10000 : 5000,
+      walletPoints: referal ? 500 : 500,
       referredBy: referalUser ? referalUser._id : null,
     });
 
     // Add referral rewards if applicable
     if (referalUser) {
-      referalUser.walletPoints += 5000;
+      referalUser.walletPoints += 500;
       await referalUser.save();
     }
 
@@ -93,11 +93,18 @@ export const login = catchAsyncError(async (req, res, next) => {
 
 
 export const profile = catchAsyncError(async (req, res, next) => {
-  const user  = req.user;
-  const profile = await User.findById(user)
- 
+  const user = req.user;
+  const profileUser = await User.findById(user)
+  const referred = await User.find({ referredBy: user }).select("username").countDocuments()
+
+  let profile = {
+    ...profileUser.toObject(),
+    referredCount: referred
+  }
+
+
   res.status(200).json({
-    success:true,
+    success: true,
     profile
   })
 })
