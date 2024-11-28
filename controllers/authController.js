@@ -121,7 +121,7 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 
   if (status === "success") {
     const voucher = await Withdraw.find({ userid, status })
-      .select("name voucher createdAt")
+      .select("name voucher points createdAt")
       .sort("-createdAt")
     return res.status(200).json({
       success: true,
@@ -131,7 +131,7 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 
   if (status === "processing") {
     const voucher = await Withdraw.find({ userid, status })
-      .select("name createdAt")
+      .select("name points createdAt")
       .sort("-createdAt")
     return res.status(200).json({
       success: true,
@@ -166,7 +166,8 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const withdraw = await Withdraw.create({
     userid: user,
     name: "Amazon gift voucher",
-    amount
+    amount,
+    points:wallet
   });
 
   await userData.save();
