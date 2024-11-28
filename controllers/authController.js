@@ -4,6 +4,7 @@ import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import User from '../models/User.js';
 import { sendToken } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
+import Withdraw from '../models/Withdraw.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } =
@@ -108,4 +109,72 @@ export const profile = catchAsyncError(async (req, res, next) => {
     profile
   })
 })
+
+// get myvouchers and withdraw request history
+export const myVouchers = catchAsyncError(async (req, res, next) => {
+  const userid = req.user
+  const {status} = req.query
+
+ 
+  if (!status)
+    return next(new ErrorHandler("Please select status", 400))
+
+  if (status === "success") {
+    const voucher = await Withdraw.find({ userid, status })
+      .select("name voucher createdAt")
+      .sort("-createdAt")
+    return res.status(200).json({
+      success: true,
+      voucher
+    })
+  }
+
+  if (status === "processing") {
+    const voucher = await Withdraw.find({ userid, status })
+      .select("name createdAt")
+      .sort("-createdAt")
+    return res.status(200).json({
+      success: true,
+      voucher
+    })
+  }
+})
+
+// Withdraw functionalities
+export const withdrawRequest = catchAsyncError(async (req, res, next) => {
+  const user = req.user;
+  const { wallet } = req.body;
+
+  const userData = await User.findById(user);
+  if (!userData)
+    return next(new ErrorHandler("User not found", 404));
+
+  if (!wallet || wallet < 10000)
+    return next(new ErrorHandler("Minimum withdrawal points is 10,000", 400));
+
+  if (wallet > 50000)
+    return next(new ErrorHandler("Maximum withdrawal points is 50,000", 400));
+
+
+  if (userData.walletPoints < wallet)
+    return next(new ErrorHandler("Insufficient funds", 400));
+
+  const amount = wallet * 0.001;
+
+  userData.walletPoints -= wallet;
+
+  const withdraw = await Withdraw.create({
+    userid: user,
+    name: "Amazon gift voucher",
+    amount
+  });
+
+  await userData.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Withdrawal request created successfully"
+  });
+});
+
 

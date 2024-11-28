@@ -7,6 +7,7 @@ import { errorMiddleware } from './middlewares/errorMiddleware.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
 import { taskCron } from './automation/cron.js';
+import { seedUsers } from './utils/faker.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use(cookieParser())
 
 app.use(cors());
 
+// await seedUsers(150)
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
