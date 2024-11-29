@@ -121,8 +121,8 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 
   if (status === "success") {
     const voucher = await Withdraw.find({ userid, status })
-      .select("name voucher points createdAt")
-      .sort("-createdAt")
+      .select("name voucher points createdAt updatedAt")
+      .sort("-updatedAt")
     return res.status(200).json({
       success: true,
       voucher
@@ -131,7 +131,7 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 
   if (status === "processing") {
     const voucher = await Withdraw.find({ userid, status })
-      .select("name points createdAt")
+      .select("name points createdAt updatedAt")
       .sort("-createdAt")
     return res.status(200).json({
       success: true,
