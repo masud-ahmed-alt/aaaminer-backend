@@ -2,9 +2,9 @@
 import { compare } from 'bcrypt';
 import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import User from '../models/User.js';
-import { sendToken } from '../utils/features.js';
-import { ErrorHandler } from '../utils/utility.js';
 import Withdraw from '../models/Withdraw.js';
+import { sendToken, setAndSendOTP } from '../utils/features.js';
+import { ErrorHandler } from '../utils/utility.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } =
@@ -113,9 +113,9 @@ export const profile = catchAsyncError(async (req, res, next) => {
 // get myvouchers and withdraw request history
 export const myVouchers = catchAsyncError(async (req, res, next) => {
   const userid = req.user
-  const {status} = req.query
+  const { status } = req.query
 
- 
+
   if (!status)
     return next(new ErrorHandler("Please select status", 400))
 
@@ -167,7 +167,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     userid: user,
     name: "Amazon gift voucher",
     amount,
-    points:wallet
+    points: wallet
   });
 
   await userData.save();
@@ -178,4 +178,60 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 });
 
+
+
+// send OTP for email verification
+
+export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
+  const userid = req.user
+  const user = await User.findById(userid)
+
+  setAndSendOTP(user, "Email Verification !")
+
+  res.status(200).json({
+    success: true,
+    message: `Otp send to ${user.email}`
+  })
+})
+
+// verify email after otp verification
+export const verifyEmail = catchAsyncError(async (req, res, next) => {
+  const userid = req.user
+  const { otp } = req.body
+
+  const user = await User.findById(userid).select("emailOTP otpExpiry isverified")
+  if (!user) return next(new ErrorHandler("User not found", 404))
+
+  if (otp !== user.emailOTP || user.otpExpiry < Date.now())
+    return next(new ErrorHandler("Invalid OTP or has expired !"))
+
+
+  user.isverified = true;
+  user.emailOTP = undefined;
+  user.otpExpiry = undefined;
+  await user.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Congratulation! Profile verified !"
+  })
+})
+
+
+// send OTP for forgot password
+export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
+  const { email } = req.body
+  if (!email) return next(new ErrorHandler("Please enter email !", 400))
+
+  const user = await User.findOne({ email })
+  if (!user) return next(new ErrorHandler("User not found !", 404))
+
+  setAndSendOTP(user, "Password Recovery !")
+
+
+  res.status(200).json({
+    success: true,
+    message: `Otp send to ${email}`
+  })
+})
 

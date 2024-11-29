@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
   walletPoints: { type: Number, default: 0 },
   wallet: { type: Number, default: 0 },
   profilePic: String,
+  emailOTP: { type: String, select: false },
+  otpExpiry: { type: Date, select: false },
   isverified: { type: Boolean, required: true, default: false },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
 }, {
