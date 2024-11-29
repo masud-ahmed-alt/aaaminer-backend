@@ -203,7 +203,7 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   if (!user) return next(new ErrorHandler("User not found", 404))
 
   if (otp !== user.emailOTP || user.otpExpiry < Date.now())
-    return next(new ErrorHandler("Invalid OTP or has expired !"))
+    return next(new ErrorHandler("Invalid OTP or has expired !",400))
 
 
   user.isverified = true;
