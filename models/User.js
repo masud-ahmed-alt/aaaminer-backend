@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   walletPoints: { type: Number, default: 0 },
   wallet: { type: Number, default: 0 },
   profilePic: String,
+  isverified: { type: Boolean, required: true, default: false },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
 }, {
   timestamps: true
