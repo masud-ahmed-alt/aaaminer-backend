@@ -203,7 +203,7 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   if (!user) return next(new ErrorHandler("User not found", 404))
 
   if (otp !== user.emailOTP || user.otpExpiry < Date.now())
-    return next(new ErrorHandler("Invalid OTP or has expired !",400))
+    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
 
 
   user.isverified = true;
@@ -231,7 +231,26 @@ export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: `Otp send to ${email}`
+    message: `OTP send to ${email}`
   })
+})
+
+export const passwordRecovery = catchAsyncError(async (req, res, next) => {
+  const { email, password, otp } = req.body
+  const user = await User.findOne({email}).select("emailOTP otpExpiry isverified password")
+  if(!user) return next(new ErrorHandler("User not found!",404))
+
+    if (otp !== user.emailOTP || user.otpExpiry < Date.now())
+      return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
+
+    user.password = password; 
+    user.emailOTP = undefined; 
+    user.otpExpiry = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully!"
+    });
 })
 

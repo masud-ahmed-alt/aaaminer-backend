@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, profile, withdrawRequest, myVouchers, verifyEmailSendOtp, verifyEmail, forgotPassSendOtp } from '../controllers/authController.js';
+import { register, login, profile, withdrawRequest, myVouchers, verifyEmailSendOtp, verifyEmail, forgotPassSendOtp, passwordRecovery } from '../controllers/authController.js';
 import { isAuthenticated, otpRequestLimiter } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -21,5 +21,6 @@ router.post("/verify-email",isAuthenticated, verifyEmail)
 
 
 router.post("/send-otp-password",otpRequestLimiter, forgotPassSendOtp)
+router.post("/recovery-password",otpRequestLimiter, passwordRecovery)
 
 export default router;
