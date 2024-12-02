@@ -66,7 +66,7 @@ export const getMessage = (subject,name, otp)=>{
         <br><br><br>
         <div class="footer">
             <p>If you did not request this, please ignore this email.</p>
-            <p>&copy; 2024 <strong>Reward+ Labs Inc.</strong>. All rights reserved.</p>
+            <p>&copy; 2024-25 <strong>Reward+</strong>. All rights reserved.</p>
         </div>
     </div>
 </body>
