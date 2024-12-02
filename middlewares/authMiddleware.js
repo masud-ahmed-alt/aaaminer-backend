@@ -13,10 +13,6 @@ export const isAuthenticated = (req, resp, next) => {
 }
 
 
-
-
-import rateLimit from 'express-rate-limit';
-
 export const otpRequestLimiter = rateLimit({
   windowMs: 1440 * 60 * 1000, // 24 hours
   max: 3, // Limit each user to 3 requests per 24 hours
