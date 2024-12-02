@@ -43,22 +43,42 @@ export const generateDailyTasks = catchAsyncError(async () => {
 
   try {
     const deleteTask = await Task.deleteMany({}); // Delete previous tasks
-    if (deleteTask)
-      console.log("Task deleted");
+    if (deleteTask) console.log("Task deleted");
   } catch (error) {
     console.log("Error while deleting: ", error);
   }
 
   try {
-    const tasks = Array.from({ length: 10 }, (_, i) => ({
-      taskName: `Task ${i + 1}`,
-      rewardPoints: Math.floor(Math.random() * 900) + 100,
-    }));
+    const taskNameTemplates = [
+      "Complete this task to earn",
+      "Hurry! Claim your reward of",
+      "Boost your points by",
+      "Don't miss out on",
+      "Achieve greatness with",
+      "Collect your bonus of",
+      "Reward unlocked:",
+      "Points available:",
+      "Earn now:",
+      "Exclusive reward of",
+    ];
+
+    const tasks = Array.from({ length: 10 }, (_, i) => {
+      const rewardPoints = Math.floor(Math.random() * 90) + 10; // Reward between 10 and 99
+      const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
+
+      return {
+        taskName: `${randomTemplate} ${rewardPoints} points!`,
+        rewardPoints,
+      };
+    });
+
     await Task.insertMany(tasks);
+    console.log("Tasks created successfully");
   } catch (error) {
     console.log("Error while creating: ", error);
   }
-})
+});
+
 
 
 export const getUserTasks = catchAsyncError(async (req, res, next) => {
@@ -67,11 +87,11 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
     if (!userId) return next(new ErrorHandler('User ID is required', 400))
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
-      return next(new ErrorHandler("Task not found! Please comeback after sometimes!", 404))
+      return next(new ErrorHandler("Congratulations You have successfully completed all the tasks. Please comeback after sometimes !!!", 404))
     res.status(200).json({ tasks });
   } catch (error) {
     console.error('Error fetching user tasks:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return next(new ErrorHandler("Internal server error", 500))
   }
 })
 

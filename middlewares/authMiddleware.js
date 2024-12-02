@@ -15,15 +15,20 @@ export const isAuthenticated = (req, resp, next) => {
 
 
 
+import rateLimit from 'express-rate-limit';
+
 export const otpRequestLimiter = rateLimit({
-  windowMs: 1440 * 60 * 1000, 
-  max: 3, 
+  windowMs: 1440 * 60 * 1000, // 24 hours
+  max: 3, // Limit each user to 3 requests per 24 hours
   message: {
     success: false,
-    message: 'Too many requests, please try again after 24 hours'
+    message: 'Too many requests, please try again after 24 hours',
   },
-  standardHeaders: true, 
-  legacyHeaders: false,  
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    return req.user?.id || req.ip; // Use user ID if available, otherwise fallback to IP
+  },
   handler: (req, res, next, options) => {
     res.status(options.statusCode).json(options.message);
   },
