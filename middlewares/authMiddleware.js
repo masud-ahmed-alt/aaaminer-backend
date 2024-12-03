@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { ErrorHandler } from '../utils/utility.js';
 import rateLimit from 'express-rate-limit';
+import Admin from '../models/Admin.js';
 
 
 
@@ -30,4 +31,23 @@ export const otpRequestLimiter = rateLimit({
   },
 });
 
+
+export const isAdmin = async (req, resp, next) => {
+  try {
+    const token = req.cookies[process.env.COOKIE_NAME];
+    if (!token) {
+      return next(new ErrorHandler("Please login to access this resource!", 401));
+    }
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await Admin.findById(decodedData._id);
+
+    if (!admin) {
+      return next(new ErrorHandler("Admin privileges required!", 403));
+    }
+    req.admin = admin;
+    next();
+  } catch (error) {
+    return next(new ErrorHandler("Authentication failed!", 401));
+  }
+}
 

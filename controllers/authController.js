@@ -38,9 +38,6 @@ export const register = catchAsyncError(async (req, res, next) => {
     }
   }
 
-
-
-
   if (username == referal)
     return next(new ErrorHandler("Do not put your username is referral option", 400))
 
@@ -71,6 +68,12 @@ export const register = catchAsyncError(async (req, res, next) => {
       await referalUser.save();
     }
 
+    const userCount = await User.countDocuments();
+    req.io.emit('liveUserCount', {
+      success: true,
+      users: userCount,
+    });
+
     // Send response with token
     sendToken(res, user, 201, `Welcome ${user.name}!`);
   } catch (error) {
@@ -96,7 +99,7 @@ export const login = catchAsyncError(async (req, res, next) => {
 export const profile = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const profileUser = await User.findById(user)
-  const referred = await User.find({ referredBy: user , isverified:true}).select("username").countDocuments()
+  const referred = await User.find({ referredBy: user, isverified: true }).select("username").countDocuments()
 
   let profile = {
     ...profileUser.toObject(),
@@ -236,20 +239,20 @@ export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
 
 export const passwordRecovery = catchAsyncError(async (req, res, next) => {
   const { email, password, otp } = req.body
-  const user = await User.findOne({email}).select("emailOTP otpExpiry isverified password")
-  if(!user) return next(new ErrorHandler("User not found!",404))
+  const user = await User.findOne({ email }).select("emailOTP otpExpiry isverified password")
+  if (!user) return next(new ErrorHandler("User not found!", 404))
 
-    if (otp !== user.emailOTP || user.otpExpiry < Date.now())
-      return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
+  if (otp !== user.emailOTP || user.otpExpiry < Date.now())
+    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
 
-    user.password = password; 
-    user.emailOTP = undefined; 
-    user.otpExpiry = undefined;
-    await user.save();
+  user.password = password;
+  user.emailOTP = undefined;
+  user.otpExpiry = undefined;
+  await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Password updated successfully!"
-    });
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully!"
+  });
 })
 
