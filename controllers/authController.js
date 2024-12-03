@@ -96,13 +96,12 @@ export const login = catchAsyncError(async (req, res, next) => {
 export const profile = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const profileUser = await User.findById(user)
-  const referred = await User.find({ referredBy: user }).select("username").countDocuments()
+  const referred = await User.find({ referredBy: user , isverified:true}).select("username").countDocuments()
 
   let profile = {
     ...profileUser.toObject(),
     referredCount: referred
   }
-
 
   res.status(200).json({
     success: true,
