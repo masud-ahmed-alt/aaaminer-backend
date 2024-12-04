@@ -62,18 +62,13 @@ export const register = catchAsyncError(async (req, res, next) => {
       referredBy: referalUser ? referalUser._id : null,
     });
 
-    // Add referral rewards if applicable
-    if (referalUser) {
-      referalUser.walletPoints += 500;
-      await referalUser.save();
-    }
+
 
     const userCount = await User.countDocuments();
     req.io.emit('liveUserCount', {
       success: true,
       users: userCount,
     });
-
     // Send response with token
     sendToken(res, user, 201, `Welcome ${user.name}!`);
   } catch (error) {
@@ -201,7 +196,7 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   const userid = req.user
   const { otp } = req.body
 
-  const user = await User.findById(userid).select("emailOTP otpExpiry isverified")
+  const user = await User.findById(userid).select("otp emailOTP otpExpiry referredBy")
   if (!user) return next(new ErrorHandler("User not found", 404))
 
   if (otp !== user.emailOTP || user.otpExpiry < Date.now())
@@ -211,8 +206,18 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   user.isverified = true;
   user.emailOTP = undefined;
   user.otpExpiry = undefined;
-  await user.save();
 
+
+  // Add referral rewards if applicable
+  let referalUser = []
+  if (user.referredBy) {
+    referalUser = await User.findById(user.referredBy)
+    referalUser.walletPoints += 500
+    await referalUser.save();
+  }
+
+  await user.save();
+ 
   res.status(201).json({
     success: true,
     message: "Congratulation! Profile verified !"
