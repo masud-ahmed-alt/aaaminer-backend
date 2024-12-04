@@ -15,6 +15,11 @@ export const register = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return next(new ErrorHandler("Invalid email format", 400));
+  }
+
   // Check if user already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
