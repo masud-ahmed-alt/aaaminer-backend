@@ -20,6 +20,10 @@ export const register = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email format", 400));
   }
 
+  if (/\s/.test(username)) {
+    return next(new ErrorHandler("Username cannot contain spaces", 400));
+  }
+
   // Check if user already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
@@ -222,7 +226,7 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   }
 
   await user.save();
- 
+
   res.status(201).json({
     success: true,
     message: "Congratulation! Profile verified !"
