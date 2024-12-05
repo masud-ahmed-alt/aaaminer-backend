@@ -1,11 +1,11 @@
 import express from 'express';
 import { register, login, profile, withdrawRequest, myVouchers, verifyEmailSendOtp, verifyEmail, forgotPassSendOtp, passwordRecovery } from '../controllers/authController.js';
-import { isAuthenticated, otpRequestLimiter } from '../middlewares/authMiddleware.js';
+import { isAuthenticated, otpRequestLimiter, signupRequestLimiter } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // Register a new user
-router.post('/register', register);
+router.post('/register',signupRequestLimiter, register);
 
 // Login a user
 router.post('/login', login);

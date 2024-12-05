@@ -21,7 +21,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         .select("username walletPoints")
         .sort({ walletPoints: -1 });
     } else if (type === 'friend') {
-      users = await User.find({ referredBy: userid })
+      users = await User.find({ referredBy: userid, isverified:true })
         .select("username walletPoints")
         .sort({ walletPoints: -1 });
     }
@@ -41,13 +41,19 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
 export const generateDailyTasks = catchAsyncError(async () => {
   console.log("generateDailyTasks initiated");
 
+  // Delete previous tasks
   try {
-    const deleteTask = await Task.deleteMany({}); // Delete previous tasks
-    if (deleteTask) console.log("Task deleted");
+    const deleteTask = await Task.deleteMany({});
+    if (deleteTask.deletedCount > 0) {
+      console.log("Task deleted");
+    } else {
+      console.log("No tasks to delete");
+    }
   } catch (error) {
-    console.log("Error while deleting: ", error);
+    console.log("Error while deleting tasks: ", error.message || error);
   }
 
+  // Create new tasks
   try {
     const taskNameTemplates = [
       "Complete this task to earn",
@@ -62,10 +68,10 @@ export const generateDailyTasks = catchAsyncError(async () => {
       "Exclusive reward of",
     ];
 
-    const tasks = Array.from({ length: 10 }, (_, i) => {
+    console.log('Creating 10 new tasks');
+    const tasks = Array.from({ length: 10 }, () => {
       const rewardPoints = Math.floor(Math.random() * 90) + 10; // Reward between 10 and 99
       const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
-
       return {
         taskName: `${randomTemplate} ${rewardPoints} points!`,
         rewardPoints,
@@ -75,11 +81,9 @@ export const generateDailyTasks = catchAsyncError(async () => {
     await Task.insertMany(tasks);
     console.log("Tasks created successfully");
   } catch (error) {
-    console.log("Error while creating: ", error);
+    console.log("Error while creating tasks: ", error.message || error);
   }
 });
-
-
 
 export const getUserTasks = catchAsyncError(async (req, res, next) => {
   try {
@@ -87,7 +91,7 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
     if (!userId) return next(new ErrorHandler('User ID is required', 400))
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
-      return next(new ErrorHandler("Congratulations You have successfully completed all the tasks. Please comeback after sometimes !!!", 404))
+      return next(new ErrorHandler("Congratulations! You have successfully completed all the tasks. Please comeback after sometimes!!!", 404))
     res.status(200).json({ tasks });
   } catch (error) {
     console.error('Error fetching user tasks:', error);

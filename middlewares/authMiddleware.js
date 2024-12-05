@@ -31,6 +31,24 @@ export const otpRequestLimiter = rateLimit({
   },
 });
 
+export const signupRequestLimiter = rateLimit({
+  windowMs: 1440 * 60 * 1000, // 24 hours
+  max: 3, // Limit each IP to 3 signup attempts per 24 hours
+  message: {
+    success: false,
+    message: 'Too many signup attempts detected. Please wait 24 hours before trying again. Creating multiple accounts may result in a permanent ban.',
+  },
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    // Use IP for unauthenticated users, fallback logic if a user ID is somehow present
+    return req.ip;
+  },
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json(options.message);
+  },
+});
+
 
 export const isAdmin = async (req, resp, next) => {
   try {

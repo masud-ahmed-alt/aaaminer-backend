@@ -184,8 +184,6 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-
 // send OTP for email verification
 
 export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
