@@ -55,25 +55,24 @@ export const generateDailyTasks = catchAsyncError(async () => {
 
   // Create new tasks
   try {
+
     const taskNameTemplates = [
-      "Complete this task to earn",
-      "Hurry! Claim your reward of",
-      "Boost your points by",
-      "Don't miss out on",
-      "Achieve greatness with",
-      "Collect your bonus of",
-      "Reward unlocked:",
-      "Points available:",
-      "Earn now:",
-      "Exclusive reward of",
+      "Complete the level",
+      "Build your empire",
+      "Explore a new world",
+      "Collect power-ups",
+      "Access exclusive content",
+      "Finish the mission",
+      "Win the battle",
+      "Reach the next stage",
+      "Complete the challenge"
     ];
 
-    console.log('Creating 10 new tasks');
-    const tasks = Array.from({ length: 10 }, () => {
+    const tasks = Array.from({ length: 7 }, () => {
       const rewardPoints = Math.floor(Math.random() * 90) + 10; // Reward between 10 and 99
       const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
       return {
-        taskName: `${randomTemplate} ${rewardPoints} points!`,
+        taskName: `${randomTemplate}`,
         rewardPoints,
       };
     });
