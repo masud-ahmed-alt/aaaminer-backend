@@ -55,9 +55,6 @@ export const register = catchAsyncError(async (req, res, next) => {
   // Handle referral logic
   if (referal) {
     referalUser = await User.findOne({ username: referal });
-    if (!referalUser) {
-      return next(new ErrorHandler("Invalid referral code", 400));
-    }
   }
 
   try {
@@ -70,8 +67,6 @@ export const register = catchAsyncError(async (req, res, next) => {
       walletPoints: referal ? 500 : 500,
       referredBy: referalUser ? referalUser._id : null,
     });
-
-
 
     const userCount = await User.countDocuments();
     req.io.emit('liveUserCount', {
