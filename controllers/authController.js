@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Withdraw from '../models/Withdraw.js';
 import { sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
+import HomeNotification from '../models/HomeNotification.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } =
@@ -261,5 +262,18 @@ export const passwordRecovery = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Password updated successfully!"
   });
+})
+
+export const getHomeNotification = catchAsyncError(async (req, res, next) => {
+
+  const notification = await HomeNotification.findOne()
+    .select("title createdAt")
+    .sort("-createdAt")
+
+  return res.status(200).json({
+    success: true,
+    notification
+  })
+
 })
 

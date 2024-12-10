@@ -5,6 +5,7 @@ import { ErrorHandler } from "../utils/utility.js";
 import User from "../models/User.js"
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
+import HomeNotification from "../models/HomeNotification.js";
 
 
 export const adminLogin = catchAsyncError(async (req, res, next) => {
@@ -111,6 +112,35 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
     }
 });
 
+
+
+export const createHomeNotification = catchAsyncError(async (req, res, next) => {
+    const { title } = req.body;
+
+    // Validate input
+    if (!title) return next(new ErrorHandler("Please provide notification title", 400));
+
+    try {
+        // Delete all existing notifications
+        await HomeNotification.deleteMany();
+
+        // Insert the new notification
+        const notification = await HomeNotification.create({ title });
+
+        if (!notification) {
+            return next(new ErrorHandler("Something went wrong!", 400));
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: "Previous notifications deleted, new notification created successfully",
+            notification,
+        });
+    } catch (error) {
+        // Handle unexpected errors
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
 
 
 
