@@ -3,7 +3,7 @@ import { generateDailyTasks } from '../controllers/taskController.js';
 
 
 export const taskCron = () => {
-  cron.schedule('0 */2 * * *', generateDailyTasks, {
+  cron.schedule('0 */4 * * *', generateDailyTasks, {
     timezone: "Asia/Kolkata",
   });
 };

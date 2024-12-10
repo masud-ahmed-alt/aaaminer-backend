@@ -68,7 +68,7 @@ export const generateDailyTasks = catchAsyncError(async () => {
       "Complete the challenge"
     ];
 
-    const tasks = Array.from({ length: 10 }, () => {
+    const tasks = Array.from({ length: 5 }, () => {
       const rewardPoints = Math.floor(Math.random() * 90) + 10; // Reward between 10 and 99
       const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
       return {
