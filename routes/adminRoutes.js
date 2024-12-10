@@ -1,5 +1,5 @@
 import express from "express"
-import { adminLogin, adminRegister, allUsers, withdrawHistory } from "../controllers/adminController.js";
+import { adminLogin, adminRegister, allUsers, sendAnnouncementEmail, withdrawHistory } from "../controllers/adminController.js";
 import {isAdmin} from "../middlewares/authMiddleware.js"
 
 
@@ -12,5 +12,8 @@ router.post('/login', adminLogin);
 router.get("/all-users", isAdmin, allUsers)
 // router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
+
+
+router.post("/send-announcement", sendAnnouncementEmail)
 
 export default router;

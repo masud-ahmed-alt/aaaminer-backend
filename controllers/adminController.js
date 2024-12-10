@@ -1,9 +1,10 @@
 import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import Admin from "../models/Admin.js";
-import { sendToken } from "../utils/features.js";
+import { sendEmail, sendToken } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import User from "../models/User.js"
 import Withdraw from "../models/Withdraw.js";
+import { announcementMsg } from "../utils/announcementMsg.js";
 
 
 export const adminLogin = catchAsyncError(async (req, res, next) => {
@@ -84,6 +85,32 @@ export const setupSocketEvents = (io) => {
         });
     });
 };
+
+export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
+    // Fetch verified users
+    const users = await User.find({ isverified: true }).select("name email");
+
+    if (!users.length) return next(new ErrorHandler("No verified users found!", 404));
+
+    try {
+        // Send emails in parallel using Promise.all
+        await Promise.all(
+            users.map(async (user) => {
+                await sendEmail(user.email, "Big Announcement!", announcementMsg(user.name));
+                console.log(`Mail sent to ${user.name} at ${user.email}`);
+            })
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Announcement emails sent successfully!",
+        });
+    } catch (error) {
+        console.error("Error sending emails:", error);
+        return next(new ErrorHandler("Failed to send announcement emails.", 500));
+    }
+});
+
 
 
 
