@@ -103,6 +103,7 @@ export const announcementMsg = (fullname)=>{
 //     `
 
     const message = `
+
     <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,7 +163,7 @@ export const announcementMsg = (fullname)=>{
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Update Your Application, Reward+</h1>
+            <h1>Reward+, Important Update !</h1>
         </div>
         <div class="content">
             <p>Dear ${fullname},</p>
@@ -172,18 +173,16 @@ export const announcementMsg = (fullname)=>{
             <p style="text-align: center;">
                 <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Update Now</a>
             </p>
+            <p>If you have already downloaded the latest version of the app or have updated it recently, please ignore this message.</p>
             <p>Thank you for your continued support and patience.</p>
             <p>Best regards,<br>Team Reward+ </p>
         </div>
         <div class="footer">
             <p>&copy; 2024-25 Reward+. All rights reserved.</p>
-           
         </div>
     </div>
 </body>
 </html>
-
-
 
     `
 

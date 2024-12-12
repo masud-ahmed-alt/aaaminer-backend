@@ -97,7 +97,7 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
         // Send emails in parallel using Promise.all
         await Promise.all(
             users.map(async (user) => {
-                await sendEmail(user.email, "Task issue fixed !", announcementMsg(user.name));
+                await sendEmail(user.email, "Important Update!", announcementMsg(user.name));
                 console.log(`Mail sent to ${user.name} at ${user.email}`);
             })
         );
