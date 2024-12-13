@@ -50,22 +50,52 @@ export const signupRequestLimiter = rateLimit({
 });
 
 
+// export const isAdmin = async (req, resp, next) => {
+//   try {
+//     const token = req.cookies[process.env.COOKIE_NAME];
+//     if (!token) {
+//       return next(new ErrorHandler("Please login to access this resource!", 401));
+//     }
+//     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+//     const admin = await Admin.findById(decodedData._id);
+
+//     if (!admin) {
+//       return next(new ErrorHandler("Admin privileges required!", 403));
+//     }
+//     req.admin = admin;
+//     next();
+//   } catch (error) {
+//     return next(new ErrorHandler("Authentication failed!", 401));
+//   }
+// }
+
+
 export const isAdmin = async (req, resp, next) => {
   try {
     const token = req.cookies[process.env.COOKIE_NAME];
+
     if (!token) {
       return next(new ErrorHandler("Please login to access this resource!", 401));
     }
-    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-    const admin = await Admin.findById(decodedData._id);
 
+    let decodedData;
+    try {
+      decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      console.error("JWT Verification Error:", error.message);
+      return next(new ErrorHandler("Invalid or expired token!", 401));
+    }
+
+    const admin = await Admin.findById(decodedData._id);
     if (!admin) {
       return next(new ErrorHandler("Admin privileges required!", 403));
     }
-    req.admin = admin;
+
+    req.admin = admin; // Attach admin to request object
     next();
   } catch (error) {
+    console.error("isAdmin Middleware Error:", error.message);
     return next(new ErrorHandler("Authentication failed!", 401));
   }
-}
+};
 
