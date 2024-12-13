@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from 'nodemailer';
 import Task from "../models/Task.js";
 import { getMessage } from "./message.js";
+
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
     sameSite: "none",
