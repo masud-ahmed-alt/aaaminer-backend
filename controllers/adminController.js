@@ -6,7 +6,17 @@ import User from "../models/User.js"
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
 import HomeNotification from "../models/HomeNotification.js";
+import moment from 'moment'
 
+
+export const adminProfile = catchAsyncError(async (req, res, next) => {
+    const  adminId  = req.admin
+    const profile = await Admin.findById(adminId)
+    return res.status(200).json({
+        success: true,
+        profile
+    })
+})
 
 export const adminLogin = catchAsyncError(async (req, res, next) => {
     const { adminCode } = req.body;
@@ -142,5 +152,111 @@ export const createHomeNotification = catchAsyncError(async (req, res, next) => 
     }
 });
 
+
+
+export const userGrowData = catchAsyncError(async (req, res, next) => {
+       // Get the date for 7 days ago
+    const sevenDaysAgo = moment().subtract(7, 'days').toDate();
+    const twelveMonthsAgo = moment().subtract(12, 'months').toDate();
+
+    // Daily User Growth (group by day)
+    const dailyGrowth = await User.aggregate([
+        {
+            $match: {
+                createdAt: { $gte: sevenDaysAgo }, // Filter users created in the last 7 days
+            }
+        },
+        {
+            $project: {
+                day: { $dayOfYear: "$createdAt" },  // Extract the day of the year from createdAt
+                year: { $year: "$createdAt" }  // Extract the year from createdAt
+            }
+        },
+        {
+            $group: {
+                _id: { day: "$day", year: "$year" }, // Group by day and year
+                count: { $sum: 1 } // Count users per day
+            }
+        },
+        {
+            $sort: { "_id.year": 1, "_id.day": 1 }  // Sort by year and day
+        }
+    ]);
+
+    // Monthly User Growth (group by month)
+    const monthlyGrowth = await User.aggregate([
+        {
+            $match: {
+                createdAt: { $gte: twelveMonthsAgo }, // Filter users created in the last 12 months
+            }
+        },
+        {
+            $project: {
+                month: { $month: "$createdAt" }, // Extract the month from createdAt
+                year: { $year: "$createdAt" }  // Extract the year from createdAt
+            }
+        },
+        {
+            $group: {
+                _id: { month: "$month", year: "$year" }, // Group by month and year
+                count: { $sum: 1 } // Count users per month
+            }
+        },
+        {
+            $sort: { "_id.year": 1, "_id.month": 1 }  // Sort by year and month
+        }
+    ]);
+
+    // Helper function to get names of days (only day name, e.g., Monday, Tuesday)
+    const getDayNames = (daysAgo) => {
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = moment().subtract(daysAgo - i, 'days');
+            days.push(date.format('dddd')); // Only day name (e.g., Monday)
+        }
+        return days;
+    };
+
+    // Helper function to get month names (only month name, e.g., January, February)
+    const getMonthNames = () => {
+        const months = [];
+        for (let i = 0; i < 12; i++) {
+            const month = moment().subtract(i, 'months');
+            months.push(month.format('MMMM')); // Only month name (e.g., January)
+        }
+        return months.reverse(); // Reverse to show from most recent to oldest
+    };
+
+    // Get the last 7 days and 12 months names
+    const last7Days = getDayNames(7);
+    const last12Months = getMonthNames();
+
+    // Format the data for the bar chart
+    const formatForChart = (growthData, isDaily) => {
+        const labels = [];
+        const data = [];
+
+        growthData.forEach(item => {
+            const label = isDaily ? `${item._id.day}` : `${item._id.month}`; // Use only the day or month name
+            labels.push(label);
+            data.push(item.count);
+        });
+
+        return { labels, data };
+    };
+
+    // Format daily and monthly growth data
+    const dailyChartData = formatForChart(dailyGrowth, true);
+    const monthlyChartData = formatForChart(monthlyGrowth, false);
+
+    // Return both daily and monthly growth data in chart format
+    res.status(200).json({
+        success: true,
+        dailyGrowth: dailyChartData,
+        monthlyGrowth: monthlyChartData,
+        last7Days,
+        last12Months
+    });
+});
 
 

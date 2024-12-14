@@ -17,13 +17,18 @@ const app = express();
 
 dotenv.config({ path: ".env" });
 
+
 const dbURI = process.env.MONGO_URI;
 connectDB(dbURI);
 taskCron();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+
+app.use(cors({
+    origin: ['http://localhost:5173', null],
+    credentials: true
+}));
 
 
 
@@ -36,7 +41,7 @@ const io = new Server(server, {
 });
 
 app.use((req, res, next) => {
-    req.io = io; 
+    req.io = io;
     next();
 });
 
