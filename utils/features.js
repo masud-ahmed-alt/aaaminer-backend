@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import nodemailer from 'nodemailer';
 import Task from "../models/Task.js";
 import { getMessage } from "./message.js";
+import ScratchCard from "../models/ScratchCard.js";
 
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
@@ -58,6 +59,10 @@ const getAvailableTasks = async (userId) => {
     return await Task.find({ completedBy: { $ne: userId } }).select("-completedBy").sort({ "createdAt": +1 })
 };
 
+const getAvailableScratchCard = async (userId) => {
+    return await ScratchCard.find({ completedBy: { $ne: userId } }).select("-completedBy")
+}
+
 const generateOTP = () => {
     return Math.random().toString().slice(2, 2 + 6);
 }
@@ -72,5 +77,6 @@ const setAndSendOTP = async (user, subject) => {
 }
 
 export {
-    cookieOptions, generateOTP, getAvailableTasks, sendEmail, sendToken, setAndSendOTP
+    cookieOptions, generateOTP, getAvailableTasks, sendEmail,
+    sendToken, setAndSendOTP, getAvailableScratchCard
 };

@@ -7,7 +7,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { taskCron } from './automation/cron.js';
+import { scratchCardCron, taskCron } from './automation/cron.js';
 import { seedUsers } from './utils/faker.js';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -21,6 +21,7 @@ dotenv.config({ path: ".env" });
 const dbURI = process.env.MONGO_URI;
 connectDB(dbURI);
 taskCron();
+scratchCardCron();
 
 app.use(express.json());
 app.use(cookieParser());

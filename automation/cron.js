@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { generateDailyTasks } from '../controllers/taskController.js';
+import { generateDailyTasks, generateScratchCard } from '../controllers/taskController.js';
 
 
 export const taskCron = () => {
@@ -8,6 +8,12 @@ export const taskCron = () => {
   });
 };
 
+// export const scratchCardCron = () => {
+//   cron.schedule('0 */5 * * *', generateScratchCard, {
+//     timezone: "Asia/Kolkata",
+//   });
+// };
+
 
 
 // export const taskCron = () => {
@@ -15,3 +21,9 @@ export const taskCron = () => {
 //     timezone: "Asia/Kolkata",
 //   });
 // };
+
+export const scratchCardCron = () => {
+  cron.schedule('*/30 * * * * *', generateScratchCard, {
+    timezone: "Asia/Kolkata",
+  });
+};

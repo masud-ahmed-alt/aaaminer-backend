@@ -260,3 +260,21 @@ export const userGrowData = catchAsyncError(async (req, res, next) => {
 });
 
 
+export const getSingleUser = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params; 
+    const user = await User.findById(id);
+    if (!user) {
+        return next(new ErrorHandler("User not found",404))
+    }
+    const referralUser = await User.find({referredBy:user.id})
+    const referredBy = await User.findById(user.referredBy)
+    return res.status(200).json({
+        success: true,
+        user,
+        referredBy,
+        referralUser
+    });
+});
+
+
+

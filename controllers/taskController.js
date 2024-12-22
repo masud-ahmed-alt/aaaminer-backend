@@ -1,7 +1,8 @@
 import { catchAsyncError } from '../middlewares/errorMiddleware.js';
+import ScratchCard from '../models/ScratchCard.js';
 import Task from '../models/Task.js';
 import User from '../models/User.js';
-import { getAvailableTasks } from '../utils/features.js';
+import { getAvailableScratchCard, getAvailableTasks } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
 export const getRanking = catchAsyncError(async (req, res, next) => {
@@ -21,7 +22,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         .select("username walletPoints")
         .sort({ walletPoints: -1 });
     } else if (type === 'friend') {
-      users = await User.find({ referredBy: userid, isverified:true })
+      users = await User.find({ referredBy: userid, isverified: true })
         .select("username walletPoints")
         .sort({ walletPoints: -1 });
     }
@@ -36,12 +37,8 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
   }
 })
 
-
-
 export const generateDailyTasks = catchAsyncError(async () => {
-  console.log("generateDailyTasks initiated");
 
-  // Delete previous tasks
   try {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
@@ -53,7 +50,6 @@ export const generateDailyTasks = catchAsyncError(async () => {
     console.log("Error while deleting tasks: ", error.message || error);
   }
 
-  // Create new tasks
   try {
 
     const taskNameTemplates = [
@@ -84,6 +80,43 @@ export const generateDailyTasks = catchAsyncError(async () => {
   }
 });
 
+
+
+
+export const generateScratchCard = catchAsyncError(async () => {
+  try {
+    const deleteScratchCard = await ScratchCard.deleteMany({});
+    if (deleteScratchCard.deletedCount > 0) {
+      console.log("Existing Scratch Cards deleted");
+    } else {
+      console.log("No Scratch Cards to delete");
+    }
+
+    const randomPoints = Array.from({ length: 3 }, () =>
+      Math.floor(Math.random() * (160 - 120 + 1)) + 120
+    );
+
+    const pointsArray = [0, ...randomPoints];
+    const shuffledPoints = pointsArray.sort(() => Math.random() - 0.5);
+
+
+    const scratchCards = shuffledPoints.map((points) => ({
+      points,
+      desc: points === 0
+        ? "OOPS! Better luck next time!"
+        : `🎉Congratulations, you have just won ${points} points!🎉`,
+    }));
+
+    await ScratchCard.insertMany(scratchCards);
+    console.log("New Scratch Cards generated successfully");
+  } catch (error) {
+    console.error("Error generating Scratch Cards: ", error.message || error);
+  }
+});
+
+
+
+
 export const getUserTasks = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user;
@@ -94,6 +127,20 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
     res.status(200).json({ tasks });
   } catch (error) {
     console.error('Error fetching user tasks:', error);
+    return next(new ErrorHandler("Internal server error", 500))
+  }
+})
+
+export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user;
+    if (!userId) return next(new ErrorHandler('User ID is required', 400))
+    const scratchCard = await getAvailableScratchCard(userId);
+    if (!scratchCard || scratchCard.length === 0)
+      return next(new ErrorHandler("You don't have any Scratch Cards right now, Please check after sometimes!", 404))
+    res.status(200).json({ scratchCard });
+  } catch (error) {
+    console.error('Error fetching user scratchCard:', error);
     return next(new ErrorHandler("Internal server error", 500))
   }
 })
@@ -132,6 +179,44 @@ export const completeTask = catchAsyncError(async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error completing task:", error);
+    next(new ErrorHandler("An error occurred while completing the task", 500));
+  }
+})
+
+export const completeScratchCard = catchAsyncError(async (req, res, next) => {
+  try {
+    const { scratchId } = req.body;
+    const userId = req.user;
+
+    const scratchCard = await ScratchCard.findById(scratchId);
+    if (!scratchCard) {
+      return next(new ErrorHandler("Scratch Card not found", 404));
+    }
+
+    const isScratchCardCompleted = Array.isArray(scratchCard.completedBy) && scratchCard.completedBy.includes(userId);
+    if (isScratchCardCompleted) {
+      return next(new ErrorHandler("Scratch Card already completed", 400));
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    user.walletPoints += scratchCard.points;
+
+    scratchCard.completedBy = Array.isArray(scratchCard.completedBy) ? scratchCard.completedBy : [];
+    scratchCard.completedBy.push(userId);
+
+    await user.save();
+    await scratchCard.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Scratch Card completed successfully"
+    });
+  } catch (error) {
+    console.error("Error completing Scratch Card:", error);
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
 })

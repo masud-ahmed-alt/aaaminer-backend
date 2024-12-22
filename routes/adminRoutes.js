@@ -1,7 +1,7 @@
 import express from "express"
 import {
     adminLogin, adminProfile, adminRegister, allUsers,
-    createHomeNotification, sendAnnouncementEmail,
+    createHomeNotification, getSingleUser, sendAnnouncementEmail,
     userGrowData, withdrawHistory
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js"
@@ -22,5 +22,11 @@ router.get("/user-growth", isAdmin, userGrowData)
 
 router.post("/send-announcement", sendAnnouncementEmail)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
+
+
+
+// User validation routes
+router.get("/get-single-user/:id", isAdmin, getSingleUser);
+
 
 export default router;
