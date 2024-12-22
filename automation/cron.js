@@ -8,11 +8,11 @@ export const taskCron = () => {
   });
 };
 
-export const scratchCardCron = () => {
-  cron.schedule('0 */5 * * *', generateScratchCard, {
-    timezone: "Asia/Kolkata",
-  });
-};
+// export const scratchCardCron = () => {
+//   cron.schedule('0 */5 * * *', generateScratchCard, {
+//     timezone: "Asia/Kolkata",
+//   });
+// };
 
 
 
@@ -22,8 +22,8 @@ export const scratchCardCron = () => {
 //   });
 // };
 
-// export const scratchCardCron = () => {
-//   cron.schedule('*/30 * * * * *', generateScratchCard, {
-//     timezone: "Asia/Kolkata",
-//   });
-// };
+export const scratchCardCron = () => {
+  cron.schedule('*/30 * * * * *', generateScratchCard, {
+    timezone: "Asia/Kolkata",
+  });
+};
