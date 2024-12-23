@@ -294,7 +294,7 @@ export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
         if (!req.file) {
             return next(new ErrorHandler("No file uploaded", 400));
         }
-        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${type}/${req.file.filename}`;
+        const fileUrl = `uploads/${type}/${req.file.filename}`;
         const carousal = new Carousel({ url: fileUrl });
         await carousal.save();
 
@@ -310,11 +310,9 @@ export const deleteCarousalImage = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     const carousal = await Carousel.findById(id);
     if (!carousal) {
-        return next(new ErrorHandler("Carousal image not found", 404));
+        return next(new ErrorHandler("Carousal not found", 404));
     }
-    let filePath = carousal.url.replace(`${req.protocol}://${req.get('host')}/`, '');
-    filePath = filePath.replace(/^file:/, '')
-
+    let filePath = carousal.url;
     fs.unlink(filePath, async (err) => {
         if (err) {
             return next(new ErrorHandler("Failed to delete the file", 500));

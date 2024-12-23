@@ -217,11 +217,15 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
 })
 
 
-export const getCarousal = catchAsyncError(async(req, res, next)=>{
-  const carousal = await Carousel.find().select("url").sort("-createdAt")
-
+export const getCarousal = catchAsyncError(async (req, res, next) => {
+  const carousal = await Carousel.find().select("url").sort("-createdAt");
+  const baseUrl = `${req.protocol}://${req.get('host')}/`;
+  const updatedCarousal = carousal.map(item => ({
+    id: item._id,
+    url: `${baseUrl}${item.url}`
+  }));
   res.status(200).json({
-    success:true,
-    carousal
-  })
-})
+    success: true,
+    carousal: updatedCarousal,
+  });
+});
