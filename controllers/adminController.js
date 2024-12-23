@@ -291,13 +291,10 @@ export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
             console.log(err);
             return next(new ErrorHandler(`File upload failed`, 400));
         }
-
         if (!req.file) {
             return next(new ErrorHandler("No file uploaded", 400));
         }
-
         const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${type}/${req.file.filename}`;
-
         const carousal = new Carousel({ url: fileUrl });
         await carousal.save();
 

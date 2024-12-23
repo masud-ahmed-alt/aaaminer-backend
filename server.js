@@ -31,6 +31,7 @@ scratchCardCron();
 
 app.use(express.json());
 app.use(cookieParser());
+app.set('trust proxy', true);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
