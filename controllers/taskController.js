@@ -4,6 +4,7 @@ import Task from '../models/Task.js';
 import User from '../models/User.js';
 import { getAvailableScratchCard, getAvailableTasks } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
+import Carousel from "../models/Carousel.js";
 
 export const getRanking = catchAsyncError(async (req, res, next) => {
 
@@ -80,9 +81,6 @@ export const generateDailyTasks = catchAsyncError(async () => {
   }
 });
 
-
-
-
 export const generateScratchCard = catchAsyncError(async () => {
   try {
     const deleteScratchCard = await ScratchCard.deleteMany({});
@@ -113,9 +111,6 @@ export const generateScratchCard = catchAsyncError(async () => {
     console.error("Error generating Scratch Cards: ", error.message || error);
   }
 });
-
-
-
 
 export const getUserTasks = catchAsyncError(async (req, res, next) => {
   try {
@@ -219,4 +214,14 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
     console.error("Error completing Scratch Card:", error);
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
+})
+
+
+export const getCarousal = catchAsyncError(async(req, res, next)=>{
+  const carousal = await Carousel.find().select("url").sort("-createdAt")
+
+  res.status(200).json({
+    success:true,
+    carousal
+  })
 })

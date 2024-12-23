@@ -1,7 +1,8 @@
 import express from "express"
 import {
     adminLogin, adminProfile, adminRegister, allUsers,
-    createHomeNotification, getSingleUser, sendAnnouncementEmail,
+    createHomeNotification, deleteCarousalImage, getSingleUser, sendAnnouncementEmail,
+    uploadCarousalImage,
     userGrowData, withdrawHistory
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js"
@@ -23,6 +24,9 @@ router.get("/user-growth", isAdmin, userGrowData)
 router.post("/send-announcement", sendAnnouncementEmail)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
 
+
+router.post("/upload-carousal", isAdmin, uploadCarousalImage)
+router.delete('/delete-carousal/:id', deleteCarousalImage);
 
 
 // User validation routes

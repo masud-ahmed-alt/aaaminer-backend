@@ -1,16 +1,21 @@
+import fs from 'fs';
+import moment from 'moment';
+import multer from 'multer';
 import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import Admin from "../models/Admin.js";
-import { sendEmail, sendToken } from "../utils/features.js";
-import { ErrorHandler } from "../utils/utility.js";
-import User from "../models/User.js"
+import Carousel from "../models/Carousel.js";
+import HomeNotification from "../models/HomeNotification.js";
+import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
-import HomeNotification from "../models/HomeNotification.js";
-import moment from 'moment'
+import { sendEmail, sendToken, storage } from "../utils/features.js";
+import { ErrorHandler } from "../utils/utility.js";
+import path from 'path';
+
 
 
 export const adminProfile = catchAsyncError(async (req, res, next) => {
-    const  adminId  = req.admin
+    const adminId = req.admin
     const profile = await Admin.findById(adminId)
     return res.status(200).json({
         success: true,
@@ -155,7 +160,7 @@ export const createHomeNotification = catchAsyncError(async (req, res, next) => 
 
 
 export const userGrowData = catchAsyncError(async (req, res, next) => {
-       // Get the date for 7 days ago
+    // Get the date for 7 days ago
     const sevenDaysAgo = moment().subtract(7, 'days').toDate();
     const twelveMonthsAgo = moment().subtract(12, 'months').toDate();
 
@@ -261,12 +266,12 @@ export const userGrowData = catchAsyncError(async (req, res, next) => {
 
 
 export const getSingleUser = catchAsyncError(async (req, res, next) => {
-    const { id } = req.params; 
+    const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-        return next(new ErrorHandler("User not found",404))
+        return next(new ErrorHandler("User not found", 404))
     }
-    const referralUser = await User.find({referredBy:user.id})
+    const referralUser = await User.find({ referredBy: user.id })
     const referredBy = await User.findById(user.referredBy)
     return res.status(200).json({
         success: true,
@@ -277,4 +282,51 @@ export const getSingleUser = catchAsyncError(async (req, res, next) => {
 });
 
 
+export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
+    const type = "carousal"
+    const upload = multer({ storage: storage(type) }).single('image');
+
+    upload(req, res, async (err) => {
+        if (err) {
+            console.log(err);
+            return next(new ErrorHandler(`File upload failed`, 400));
+        }
+
+        if (!req.file) {
+            return next(new ErrorHandler("No file uploaded", 400));
+        }
+
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${type}/${req.file.filename}`;
+
+        const carousal = new Carousel({ url: fileUrl });
+        await carousal.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Image uploaded successfully',
+        });
+    });
+});
+
+
+export const deleteCarousalImage = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    const carousal = await Carousel.findById(id);
+    if (!carousal) {
+        return next(new ErrorHandler("Carousal image not found", 404));
+    }
+    let filePath = carousal.url.replace(`${req.protocol}://${req.get('host')}/`, '');
+    filePath = filePath.replace(/^file:/, '')
+
+    fs.unlink(filePath, async (err) => {
+        if (err) {
+            return next(new ErrorHandler("Failed to delete the file", 500));
+        }
+        await carousal.deleteOne()
+        res.status(200).json({
+            success: true,
+            message: 'Carousal image deleted successfully',
+        });
+    });
+});
 

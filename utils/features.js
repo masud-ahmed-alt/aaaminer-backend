@@ -3,6 +3,8 @@ import nodemailer from 'nodemailer';
 import Task from "../models/Task.js";
 import { getMessage } from "./message.js";
 import ScratchCard from "../models/ScratchCard.js";
+import multer from 'multer';
+import fs from 'fs';
 
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
@@ -76,7 +78,26 @@ const setAndSendOTP = async (user, subject) => {
     await sendEmail(user.email, subject, message)
 }
 
+const getUploadPath = (type) => {
+    const baseDir = 'uploads/';
+    const subDir = `${baseDir}${type}/`;
+    if (!fs.existsSync(subDir)) {
+        fs.mkdirSync(subDir, { recursive: true });
+    }
+    return subDir;
+};
+
+const storage = (type) => multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = getUploadPath(type || 'general');
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+
 export {
     cookieOptions, generateOTP, getAvailableTasks, sendEmail,
-    sendToken, setAndSendOTP, getAvailableScratchCard
+    sendToken, setAndSendOTP, getAvailableScratchCard, storage
 };

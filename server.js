@@ -11,7 +11,13 @@ import { scratchCardCron, taskCron } from './automation/cron.js';
 import { seedUsers } from './utils/faker.js';
 import http from 'http';
 import { Server } from 'socket.io';
-import { setupSocketEvents } from './controllers/adminController.js'; // Correct Import
+import { setupSocketEvents } from './controllers/adminController.js'; 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -25,6 +31,9 @@ scratchCardCron();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
 
 app.use(cors({
     origin: ['http://localhost:5173', null],
