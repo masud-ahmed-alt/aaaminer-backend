@@ -10,7 +10,7 @@ const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
     sameSite: "none",
     httpOnly: true,
-    secure: true
+    secure: false
 }
 
 
