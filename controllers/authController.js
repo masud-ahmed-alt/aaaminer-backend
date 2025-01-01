@@ -277,3 +277,56 @@ export const getHomeNotification = catchAsyncError(async (req, res, next) => {
 
 })
 
+export const updateProfile = catchAsyncError(async (req, res, next) => {
+  const userId = req.user;
+  const { name, phone, gender, dob, countryCode } = req.body;
+
+
+  if (!userId) {
+    return next(new ErrorHandler("Unauthorized access", 401));
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("Profile not found", 404));
+  }
+
+
+  if (name && typeof name !== "string") {
+    return next(new ErrorHandler("Invalid name format", 400));
+  }
+
+  const phoneRegex = /^[0-9]{10}$/;
+  const countryCodeRegex = /^\+\d{1,4}$/;
+
+  if (phone) {
+    if (!countryCode || !countryCodeRegex.test(countryCode)) {
+      return next(new ErrorHandler("Invalid or missing country code", 400));
+    }
+
+    if (!phoneRegex.test(phone)) {
+      return next(new ErrorHandler("Invalid phone number. Must be 10 digits.", 400));
+    }
+  }
+
+
+  if (gender && !["Male", "Female", "Other"].includes(gender.toLowerCase())) {
+    return next(new ErrorHandler("Invalid gender value", 400));
+  }
+
+  if (dob && isNaN(Date.parse(dob))) {
+    return next(new ErrorHandler("Invalid date of birth", 400));
+  }
+
+  if (name) user.name = name.trim();
+  if (phone) user.phone = countryCode.trim() + phone.trim();
+  if (gender) user.gender = gender.trim().toLowerCase();
+  if (dob) user.dob = new Date(dob);
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully!",
+  });
+});

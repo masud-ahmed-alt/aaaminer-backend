@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, profile, withdrawRequest, myVouchers, verifyEmailSendOtp, verifyEmail, forgotPassSendOtp, passwordRecovery, getHomeNotification } from '../controllers/authController.js';
+import { register, login, profile, withdrawRequest, myVouchers, verifyEmailSendOtp, verifyEmail, forgotPassSendOtp, passwordRecovery, getHomeNotification, updateProfile } from '../controllers/authController.js';
 import { isAuthenticated, otpRequestLimiter, signupRequestLimiter } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -23,5 +23,7 @@ router.get("/get-home-notification", getHomeNotification)
 
 router.post("/send-otp-password",otpRequestLimiter, forgotPassSendOtp)
 router.post("/recovery-password",otpRequestLimiter, passwordRecovery)
+
+router.post("/update-profile",isAuthenticated, updateProfile)
 
 export default router;
