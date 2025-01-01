@@ -310,7 +310,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   }
 
 
-  if (gender && !["Male", "Female", "Other"].includes(gender.toLowerCase())) {
+  if (gender && !["Male", "Female", "Other"].includes(gender)) {
     return next(new ErrorHandler("Invalid gender value", 400));
   }
 
