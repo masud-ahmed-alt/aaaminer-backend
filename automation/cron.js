@@ -20,10 +20,10 @@ export const scratchCardCron = () => {
 //   cron.schedule('*/30 * * * * *', generateDailyTasks, {
 //     timezone: "Asia/Kolkata",
 //   });
-// };
+// }
 
 // export const scratchCardCron = () => {
-//   cron.schedule('*/30 * * * * *', generateScratchCard, {
+//   cron.schedule('*/40 * * * * *', generateScratchCard, {
 //     timezone: "Asia/Kolkata",
 //   });
-// };
+// }

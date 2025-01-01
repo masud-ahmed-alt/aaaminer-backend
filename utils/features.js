@@ -5,6 +5,7 @@ import { getMessage } from "./message.js";
 import ScratchCard from "../models/ScratchCard.js";
 import multer from 'multer';
 import fs from 'fs';
+import TelegramBot from "node-telegram-bot-api";
 
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
@@ -97,7 +98,31 @@ const storage = (type) => multer.diskStorage({
     },
 });
 
+const sendTelegramMessage = (message, imagePath) => {
+    const token = process.env.TEL_BOT_TOKEN
+    const chatId = process.env.CHAT_ID
+    const bot = new TelegramBot(token, { polling: false })
+
+    // Check if the file exists
+    if (!fs.existsSync(imagePath)) {
+        console.error('Image file not found:', imagePath)
+        return;
+    }
+
+    // Send the image with a caption
+    bot.sendPhoto(chatId, fs.createReadStream(imagePath), { caption: message })
+        .then(() => {
+            console.log('Telegram message sent successfully')
+        })
+        .catch((error) => {
+            console.error('Error telegram sending message:', error);
+        })
+}
+
+
+
 export {
     cookieOptions, generateOTP, getAvailableTasks, sendEmail,
-    sendToken, setAndSendOTP, getAvailableScratchCard, storage
+    sendToken, setAndSendOTP, getAvailableScratchCard, storage, sendTelegramMessage
 };
+
