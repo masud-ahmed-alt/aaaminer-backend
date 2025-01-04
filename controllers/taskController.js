@@ -76,8 +76,8 @@ export const generateDailyTasks = catchAsyncError(async () => {
 
     await Task.insertMany(tasks);
     const message = `🚨 New Task Alert! 🚨\n New tasks are available for you! Complete it on time to earn extra reward points and climb to the top of the leaderboard!`
-    const imageUrl = "./src/telegram/tasks.jpg"
-    sendTelegramMessage(message, imageUrl)
+    // const imageUrl = "./src/telegram/tasks.jpg"
+    // sendTelegramMessage(message, imageUrl)
     console.log("Tasks created successfully");
   } catch (error) {
     console.log("Error while creating tasks: ", error.message || error);
@@ -110,8 +110,8 @@ export const generateScratchCard = catchAsyncError(async () => {
 
     await ScratchCard.insertMany(scratchCards);
     const message = `🎉 New Scratch Cards Are Here! 🎉\n We've initiated new scratch cards—scratch now to earn more points and boost your rewards!`
-    const imageUrl = "./src/telegram/scratchCard.jpg"
-    sendTelegramMessage(message, imageUrl)
+    // const imageUrl = "./src/telegram/scratchCard.jpg"
+    // sendTelegramMessage(message, imageUrl)
     console.log("New Scratch Cards generated successfully");
   } catch (error) {
     console.error("Error generating Scratch Cards: ", error.message || error);
