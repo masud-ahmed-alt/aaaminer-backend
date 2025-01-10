@@ -279,8 +279,7 @@ export const getHomeNotification = catchAsyncError(async (req, res, next) => {
 
 export const updateProfile = catchAsyncError(async (req, res, next) => {
   const userId = req.user;
-  const { name, phone, gender, dob, countryCode } = req.body;
-
+  const { name, phone } = req.body;
 
   if (!userId) {
     return next(new ErrorHandler("Unauthorized access", 401));
@@ -308,20 +307,9 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Invalid phone number. Must be 10 digits.", 400));
     }
   }
-
-
-  if (gender && !["Male", "Female", "Other"].includes(gender)) {
-    return next(new ErrorHandler("Invalid gender value", 400));
-  }
-
-  if (dob && isNaN(Date.parse(dob))) {
-    return next(new ErrorHandler("Invalid date of birth", 400));
-  }
-
+  
   if (name) user.name = name.trim();
-  if (phone) user.phone = countryCode.trim() + phone.trim();
-  if (gender) user.gender = gender.trim().toLowerCase();
-  if (dob) user.dob = new Date(dob);
+  if (phone) user.phone = phone.trim();
 
   await user.save();
 
