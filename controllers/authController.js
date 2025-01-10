@@ -6,6 +6,7 @@ import Withdraw from '../models/Withdraw.js';
 import { sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 import HomeNotification from '../models/HomeNotification.js';
+import bcrypt from 'bcryptjs';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } =
@@ -310,5 +311,42 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Profile updated successfully!",
+  });
+});
+
+
+
+export const changePassword = catchAsyncError(async (req, res, next) => {
+  const userId = req.user;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!userId) {
+    return next(new ErrorHandler("Unauthorized access", 401));
+  }
+
+  // Validate inputs
+  if (!currentPassword || !newPassword) {
+    return next(new ErrorHandler("Please provide both current and new password", 400));
+  }
+
+  // Find the user
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Compare the current password
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    return next(new ErrorHandler("Current password is incorrect", 400));
+  }
+
+  // Update to new password
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password changed successfully",
   });
 });
