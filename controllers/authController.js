@@ -296,18 +296,12 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   }
 
   const phoneRegex = /^[0-9]{10}$/;
-  const countryCodeRegex = /^\+\d{1,4}$/;
-
   if (phone) {
-    if (!countryCode || !countryCodeRegex.test(countryCode)) {
-      return next(new ErrorHandler("Invalid or missing country code", 400));
-    }
-
     if (!phoneRegex.test(phone)) {
       return next(new ErrorHandler("Invalid phone number. Must be 10 digits.", 400));
     }
   }
-  
+
   if (name) user.name = name.trim();
   if (phone) user.phone = phone.trim();
 
