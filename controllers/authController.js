@@ -153,14 +153,14 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
 
   if (!wallet || wallet < 10000)
-    return next(new ErrorHandler("Minimum withdrawal points is 10,000", 400));
+    return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
   if (wallet > 50000)
-    return next(new ErrorHandler("Maximum withdrawal points is 50,000", 400));
+    return next(new ErrorHandler("Maximum redeem points is 50,000", 400));
 
 
   if (userData.walletPoints < wallet)
-    return next(new ErrorHandler("Insufficient funds", 400));
+    return next(new ErrorHandler("Insufficient points", 400));
 
   const amount = wallet * 0.001;
 
@@ -172,6 +172,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     amount,
     points: wallet
   });
+  
 
   await userData.save();
 
