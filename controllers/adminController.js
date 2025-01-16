@@ -128,7 +128,6 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
 });
 
 
-
 export const createHomeNotification = catchAsyncError(async (req, res, next) => {
     const { title } = req.body;
 

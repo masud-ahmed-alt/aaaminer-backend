@@ -1,191 +1,79 @@
 export const announcementMsg = (fullname)=>{
     const message =`
-    
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exciting Announcement!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
             margin: 0;
             padding: 0;
-            color: #333;
+            background-color: #f4f4f4;
         }
         .email-container {
             max-width: 600px;
             margin: 20px auto;
-            background-color: #ffffff;
+            background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         .header {
-            background-color: #007BFF;
+            background-color: #007bff;
             color: white;
             text-align: center;
             padding: 20px;
-            font-size: 24px;
-            font-weight: bold;
+        }
+        .header h1 {
+            margin: 0;
         }
         .content {
             padding: 20px;
+            color: #333;
             line-height: 1.6;
         }
         .content h2 {
-            color: #007BFF;
+            color: #007bff;
         }
-        .cta {
-            text-align: center;
+        .cta-button {
+            display: inline-block;
             margin: 20px 0;
-        }
-        .cta a {
-            text-decoration: none;
+            padding: 10px 20px;
             background-color: #28a745;
             color: white;
-            padding: 12px 24px;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .cta a:hover {
-            background-color: #218838;
+            text-decoration: none;
+            border-radius: 4px;
         }
         .footer {
-            background-color: #f1f1f1;
             text-align: center;
             padding: 10px;
-            font-size: 14px;
+            background: #f8f9fa;
+            font-size: 12px;
             color: #666;
-        }
-        .footer a {
-            color: #007BFF;
-            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <!-- Header Section -->
         <div class="header">
-            Introducing Scratch Cards - Win Big Rewards!
+            <h1>Great News 🎉</h1>
         </div>
-        <!-- Content Section -->
         <div class="content">
-            <h2>Hi ${fullname},</h2>
-            <p>
-                We have some exciting news for you! 🚀 Our brand-new <strong>Scratch Card</strong> feature is now live in the app! Scratch your way to exclusive rewards, exciting offers, and amazing gifts. 🌟
-            </p>
-            <p>
-                Don't miss out—update your app today and start winning big. The more you engage, the greater your chances to unlock fantastic rewards.
-            </p>
-            <div class="cta">
-                <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" target="_blank">Try Scratch Cards Now</a>
-            </div>
-            <p>
-                Thank you for being part of our community. Let's make winning even more rewarding together!
-            </p>
+            <h2>Hello ${fullname},</h2>
+            <p>We’re thrilled to share that the redemption functionality you’ve been waiting for is almost ready to launch! 🚀</p>
+            <p>Take this opportunity to <strong>complete your tasks</strong> and <strong>refer your friends</strong> to climb to the top of the leaderboard. Incredible rewards and exclusive deals are waiting for the top performers!</p>
+            <p>Let’s make this moment count!</p>
+            <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Complete Tasks Now</a>
         </div>
-        <!-- Footer Section -->
         <div class="footer">
-            <p>
-                Need assistance? <a href="https://t.me/rewardplus">Join Telegram</a> or visit our <a href="https://rewardplus.site/" target="_blank">Official Site</a>.
-            </p>
-            <p>&copy; 2024-25 Reward+. All rights reserved.</p>
+            <p>Thank you for being a valued part of our community.</p>
+            <p>&copy; 2025 Reward+ | All rights reserved</p>
         </div>
     </div>
 </body>
 </html>
 
-
-
     `
-
-//     const message = `
-
-//     <!DOCTYPE html>
-// <html lang="en">
-// <head>
-//     <meta charset="UTF-8">
-//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//     <title>Update Your Application</title>
-//     <style>
-//         body {
-//             font-family: Arial, sans-serif;
-//             background-color: #f9f9f9;
-//             margin: 0;
-//             padding: 0;
-//         }
-//         .email-container {
-//             max-width: 600px;
-//             margin: 20px auto;
-//             background: #ffffff;
-//             border: 1px solid #dddddd;
-//             border-radius: 8px;
-//             padding: 20px;
-//             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//         }
-//         .header {
-//             text-align: center;
-//             margin-bottom: 20px;
-//         }
-//         .header h1 {
-//             color: #333333;
-//         }
-//         .content {
-//             line-height: 1.6;
-//             color: #555555;
-//         }
-//         .content p {
-//             margin: 10px 0;
-//         }
-//         .cta-button {
-//             display: inline-block;
-//             margin: 20px 0;
-//             padding: 10px 20px;
-//             background-color: #007bff;
-//             color: #ffffff;
-//             text-decoration: none;
-//             border-radius: 5px;
-//         }
-//         .cta-button:hover {
-//             background-color: #0056b3;
-//         }
-//         .footer {
-//             text-align: center;
-//             margin-top: 20px;
-//             font-size: 12px;
-//             color: #888888;
-//         }
-//     </style>
-// </head>
-// <body>
-//     <div class="email-container">
-//         <div class="header">
-//             <h1>Reward+, Important Update !</h1>
-//         </div>
-//         <div class="content">
-//             <p>Dear ${fullname},</p>
-//             <p>We are excited to inform you that the issue affecting your tasks in the application has been resolved. To continue enjoying a seamless experience, we kindly request you to update your application to the latest version.</p>
-//             <p>The new update includes fixes for the reported issues and enhancements to improve your experience.</p>
-//             <p>Click the button below to update your application now:</p>
-//             <p style="text-align: center;">
-//                 <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Update Now</a>
-//             </p>
-//             <p>If you have already downloaded the latest version of the app or have updated it recently, please ignore this message.</p>
-//             <p>Thank you for your continued support and patience.</p>
-//             <p>Best regards,<br>Team Reward+ </p>
-//         </div>
-//         <div class="footer">
-//             <p>&copy; 2024-25 Reward+. All rights reserved.</p>
-//         </div>
-//     </div>
-// </body>
-// </html>
-
-//     `
-
     return message
 }

@@ -1,5 +1,5 @@
-export const getMessage = (subject,name, otp)=>{
-    const message=`
+export const getOTPMessage = (subject,name, otp)=>{
+    const otpMessage=`
     
 <!DOCTYPE html>
 <html lang="en">
@@ -72,10 +72,7 @@ export const getMessage = (subject,name, otp)=>{
 </body>
 </html>
 
-
-
-
     `
 
-    return message
+    return otpMessage
 }

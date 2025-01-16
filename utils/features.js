@@ -1,11 +1,11 @@
-import jwt from "jsonwebtoken";
-import nodemailer from 'nodemailer';
-import Task from "../models/Task.js";
-import { getMessage } from "./message.js";
-import ScratchCard from "../models/ScratchCard.js";
-import multer from 'multer';
 import fs from 'fs';
+import jwt from "jsonwebtoken";
+import multer from 'multer';
 import TelegramBot from "node-telegram-bot-api";
+import nodemailer from 'nodemailer';
+import ScratchCard from "../models/ScratchCard.js";
+import Task from "../models/Task.js";
+import { getOTPMessage } from "./otpMessage.js";
 
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
@@ -72,7 +72,7 @@ const generateOTP = () => {
 
 const setAndSendOTP = async (user, subject) => {
     const otp = generateOTP()
-    const message = getMessage(subject, user.name, otp)
+    const message = getOTPMessage(subject, user.name, otp)
     user.emailOTP = otp
     user.otpExpiry = Date.now() + 15 * 60 * 1000;
     await user.save();
@@ -122,7 +122,6 @@ const sendTelegramMessage = (message, imagePath) => {
 
 
 export {
-    cookieOptions, generateOTP, getAvailableTasks, sendEmail,
-    sendToken, setAndSendOTP, getAvailableScratchCard, storage, sendTelegramMessage
+    cookieOptions, generateOTP, getAvailableScratchCard, getAvailableTasks, sendEmail, sendTelegramMessage, sendToken, setAndSendOTP, storage
 };
 
