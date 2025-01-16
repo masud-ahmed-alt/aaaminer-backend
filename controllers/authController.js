@@ -318,36 +318,57 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
 
 export const changePassword = catchAsyncError(async (req, res, next) => {
-  const userId = req.user;
-  const { currentPassword, newPassword } = req.body;
+  const userId = req.user
+  const { currentPassword, newPassword } = req.body
 
   if (!userId) {
-    return next(new ErrorHandler("Unauthorized access", 401));
+    return next(new ErrorHandler("Unauthorized access", 401))
   }
 
   // Validate inputs
   if (!currentPassword || !newPassword) {
-    return next(new ErrorHandler("Please provide both current and new password", 400));
+    return next(new ErrorHandler("Please provide both current and new password", 400))
   }
 
   // Find the user
-  const user = await User.findById(userId).select('+password');
+  const user = await User.findById(userId).select('+password')
   if (!user) {
-    return next(new ErrorHandler("User not found", 404));
+    return next(new ErrorHandler("User not found", 404))
   }
 
   // Compare the current password
-  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  const isMatch = await bcrypt.compare(currentPassword, user.password)
   if (!isMatch) {
-    return next(new ErrorHandler("Current password is incorrect", 400));
+    return next(new ErrorHandler("Current password is incorrect", 400))
   }
 
   // Update to new password
-  user.password = newPassword;
-  await user.save();
+  user.password = newPassword
+  await user.save()
 
   res.status(200).json({
     success: true,
     message: "Password changed successfully",
   });
 });
+
+
+export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
+  const userId = req.user
+
+  // Step 1: Get all users and their walletPoints, sorted by walletPoints in descending order
+  const topUsers = await User.find({})
+    .select('walletPoints')
+    .sort({ walletPoints: -1 })
+    .limit(10);
+
+  // Step 2: Check if the current user is in the top 10
+  const isInTopTen = topUsers.some(user => user._id.toString() === userId.toString());
+
+  // Step 3: Return the result
+  res.status(200).json({
+    success: true,
+    isEligible: isInTopTen,
+    topUsers, // Optionally return the top 10 users
+  });
+})
