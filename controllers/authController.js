@@ -9,54 +9,62 @@ import HomeNotification from '../models/HomeNotification.js';
 import bcrypt from 'bcryptjs';
 
 export const register = catchAsyncError(async (req, res, next) => {
-  const { name, email, username, password, referal } =
-    req.body;
+  const { name, email, username, password, referal } = req.body;
 
   // Validate all required fields
   if (!name || !email || !password || !username) {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
+  // Validate Name: Check for suspicious or malicious characters
+  const nameRegex = /^[a-zA-Z\s.'-]+$/; // Only letters, spaces, periods, and hyphens allowed
+  if (!nameRegex.test(name)) {
+    return next(new ErrorHandler("Invalid name format. Only letters, spaces, periods, and hyphens are allowed.", 400));
+  }
+
+  // Validate Email: Check for a valid email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return next(new ErrorHandler("Invalid email format", 400));
   }
 
+  // Check for unknown or suspicious domain in the email
+  const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
+  const emailDomain = email.split('@')[1];
+  if (!knownDomains.includes(emailDomain)) {
+    return next(new ErrorHandler("Email domain is not from a trusted provider.", 400));
+  }
+
+  // Check if username contains spaces
   if (/\s/.test(username)) {
     return next(new ErrorHandler("Username cannot contain spaces", 400));
   }
 
-  // Check if user already exists
+  // Check if the user already exists by email
   const userExists = await User.findOne({ email });
   if (userExists) {
-    return next(
-      new ErrorHandler(
-        "You are already registered. Please log in.",
-        400
-      )
-    );
+    return next(new ErrorHandler("You are already registered. Please log in.", 400));
   }
 
-  const checkUser = await User.findOne({ username })
+  // Check if the username already exists
+  const checkUser = await User.findOne({ username });
   if (checkUser) {
-    if (username === checkUser.username) {
-      return next(
-        new ErrorHandler(
-          "Username already taken. Please choose different.",
-          400
-        )
-      );
-    }
+    return next(new ErrorHandler("Username already taken. Please choose a different one.", 400));
   }
 
-  if (username == referal)
-    return next(new ErrorHandler("Do not put your username is referral option", 400))
+  // Check for self-referral (if the referral is the same as the username)
+  if (username === referal) {
+    return next(new ErrorHandler("Do not put your username in the referral option", 400));
+  }
 
   let referalUser = null;
 
-  // Handle referral logic
+  // Handle referral logic if referral is provided
   if (referal) {
     referalUser = await User.findOne({ username: referal });
+    if (!referalUser) {
+      return next(new ErrorHandler("Referral user does not exist", 400));
+    }
   }
 
   try {
@@ -75,6 +83,7 @@ export const register = catchAsyncError(async (req, res, next) => {
       success: true,
       users: userCount,
     });
+
     // Send response with token
     sendToken(res, user, 201, `Welcome ${user.name}!`);
   } catch (error) {

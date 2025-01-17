@@ -276,8 +276,6 @@ export const userGrowData = catchAsyncError(async (req, res, next) => {
     });
 });
 
-
-
 export const getSingleUser = catchAsyncError(async (req, res, next) => {
     const { id } = req.params;
     const user = await User.findById(id);
@@ -338,3 +336,50 @@ export const deleteCarousalImage = catchAsyncError(async (req, res, next) => {
     });
 });
 
+export const getSuspectedUser = catchAsyncError(async (req, res, next) => {
+    // Define known domains
+    const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
+
+    // Email validation regex patterns
+    const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/; // Extra dots in the local part of email
+    const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/; // Too many segments in the local part of email
+    const unknownDomainRegex = new RegExp(`@(?!(${knownDomains.join('|')})$).*`, 'i'); // Unknown domains
+
+    // Name validation regex patterns
+    const nameWithExtraDotsRegex = /(\.{2,})/; // Multiple consecutive dots in the name
+    const nameTooManySegmentsRegex = /(\.[^.]+){2,}/; // Name with too many segments (e.g., john.doe.max)
+    const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/; // Non-alphanumeric characters in the name (excluding .-)
+
+    // Fetch users with suspicious emails and/or names
+    const suspectedUsers = await User.find({
+        $or: [
+            // Emails with suspicious patterns
+            { email: { $regex: extraDotsRegex } }, // Emails with extra dots
+            { email: { $regex: tooManySegmentsRegex } }, // Emails with too many segments
+            { email: { $regex: unknownDomainRegex } }, // Emails with unknown domains
+
+            // Names with suspicious patterns
+            { name: { $regex: nameWithExtraDotsRegex } }, // Names with extra dots
+            { name: { $regex: nameTooManySegmentsRegex } }, // Names with too many segments
+            { name: { $regex: nameNonAlphanumericRegex } }, // Names with non-alphanumeric characters
+        ]
+    });
+
+    res.status(200).json({
+        success: true,
+        count: suspectedUsers.length,
+        users: suspectedUsers,
+    });
+});
+export const getBannedUser = catchAsyncError(async (req, res, next) => {
+
+    const bannedUsers = await User.find({
+        isBanned: true
+    });
+
+    res.status(200).json({
+        success: true,
+        count: bannedUsers.length,
+        users: bannedUsers,
+    });
+});

@@ -1,7 +1,7 @@
 import express from "express"
 import {
     adminLogin, adminProfile, adminRegister, allUsers,
-    createHomeNotification, deleteCarousalImage, getSingleUser, sendAnnouncementEmail,
+    createHomeNotification, deleteCarousalImage, getBannedUser, getSingleUser, getSuspectedUser, sendAnnouncementEmail,
     uploadCarousalImage,
     userGrowData, withdrawHistory
 } from "../controllers/adminController.js";
@@ -32,5 +32,9 @@ router.delete('/delete-carousal/:id', deleteCarousalImage);
 // User validation routes
 router.get("/get-single-user/:id", isAdmin, getSingleUser);
 
+
+// find suspected users
+router.get("/get-suspected-user", isAdmin, getSuspectedUser);
+router.get("/get-banned-user", isAdmin, getBannedUser);
 
 export default router;
