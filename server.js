@@ -1,20 +1,18 @@
-import express from 'express';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import dotenv from "dotenv";
+import express from 'express';
+import http from 'http';
+import path, { dirname } from 'path';
+import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { scratchCardCron, taskCron } from './automation/cron.js';
 import connectDB from './config/db.js';
+import { setupSocketEvents } from './controllers/adminController.js';
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import { errorMiddleware } from './middlewares/errorMiddleware.js';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import { scratchCardCron, taskCron } from './automation/cron.js';
-import { seedUsers } from './utils/faker.js';
-import http from 'http';
-import { Server } from 'socket.io';
-import { setupSocketEvents } from './controllers/adminController.js'; 
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import path from 'path';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +56,7 @@ app.use((req, res, next) => {
 });
 
 // seedUsers(150)
+
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
