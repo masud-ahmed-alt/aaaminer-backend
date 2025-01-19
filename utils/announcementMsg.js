@@ -1,9 +1,9 @@
 export const announcementMsg = (fullname)=>{
     const message =`
-   <!DOCTYPE html>
+  <!DOCTYPE html>
 <html>
 <head>
-    <title>Important Update Request!</title>
+    <title>Exciting Rewards Await You!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -64,24 +64,29 @@ export const announcementMsg = (fullname)=>{
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Update Your Profile!</h1>
+            <h1>Don’t Miss Out on Exciting Rewards!</h1>
         </div>
         <div class="content">
             <h2>Hi ${fullname},</h2>
-            <p>We’ve noticed some of your profile information might be outdated, and we want to ensure you get the most out of Reward+.</p>
-            <p>Keeping your profile up-to-date helps us provide you with the best personalized experience, timely notifications, and exclusive offers!</p>
-            <p>It only takes a minute, and it’s the easiest way to stay connected to all the exciting features we’re rolling out.</p>
+            <p>Get ready to take your Reward+ experience to the next level! Here’s what’s waiting for you:</p>
+            <ul>
+                <li><strong>Scratch and Win:</strong> Don’t forget to scratch your scratch cards daily for exciting rewards!</li>
+                <li><strong>Complete Your Tasks:</strong> Stay ahead of the competition by completing your tasks and earning points.</li>
+                <li><strong>Climb the Leaderboard:</strong> Reach the top and unlock exclusive benefits and recognition!</li>
+            </ul>
+            <p>Your journey to the top starts now. Every action counts, so let’s make it happen!</p>
             <div class="button-container">
-                <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Update Profile Now</a>
+                <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Start Earning Rewards</a>
             </div>
         </div>
         <div class="footer">
-            <p>We appreciate your continued support in making Reward+ amazing.</p>
+            <p>Thank you for being a valued part of the Reward+ community.</p>
             <p>&copy; 2025 Reward+ | All rights reserved</p>
         </div>
     </div>
 </body>
 </html>
+
 
     `
     return message
