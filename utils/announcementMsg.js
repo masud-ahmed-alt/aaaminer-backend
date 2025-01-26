@@ -1,9 +1,8 @@
 export const announcementMsg = (fullname)=>{
     const message =`
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
-    <title>Exciting Rewards Await You!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,79 +13,63 @@ export const announcementMsg = (fullname)=>{
         .email-container {
             max-width: 600px;
             margin: 20px auto;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
+            background-color: #ff9933;
+            color: #ffffff;
             padding: 20px;
+            text-align: center;
         }
         .header h1 {
             margin: 0;
+            font-size: 24px;
         }
         .content {
             padding: 20px;
-            color: #333;
-            line-height: 1.6;
-        }
-        .content h2 {
-            color: #007bff;
-        }
-        .button-container {
             text-align: center;
+            color: #333333;
+            background-color: #ffffff; /* Ensures the middle part is white */
         }
-        .cta-button {
-            display: inline-block;
-            margin: 20px 0;
-            padding: 12px 20px;
-            background-color: #ff5722;
-            color: white;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        .cta-button:hover {
-            background-color: #e64a19;
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
         }
         .footer {
-            text-align: center;
+            background-color: #128807;
+            color: #ffffff;
             padding: 10px;
-            background: #f8f9fa;
-            font-size: 12px;
-            color: #666;
+            text-align: center;
+            font-size: 14px;
+        }
+        .flag {
+            display: block;
+            margin: 0 auto 20px;
+            width: 100px;
         }
     </style>
 </head>
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Don’t Miss Out on Exciting Rewards!</h1>
+            <h1>Happy Republic Day!</h1>
         </div>
         <div class="content">
-            <h2>Hi ${fullname},</h2>
-            <p>Get ready to take your Reward+ experience to the next level! Here’s what’s waiting for you:</p>
-            <ul>
-                <li><strong>Scratch and Win:</strong> Don’t forget to scratch your scratch cards daily for exciting rewards!</li>
-                <li><strong>Complete Your Tasks:</strong> Stay ahead of the competition by completing your tasks and earning points.</li>
-                <li><strong>Climb the Leaderboard:</strong> Reach the top and unlock exclusive benefits and recognition!</li>
-            </ul>
-            <p>Your journey to the top starts now. Every action counts, so let’s make it happen!</p>
-            <div class="button-container">
-                <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Start Earning Rewards</a>
-            </div>
+            <img class="flag" src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1920px-Flag_of_India.svg.png" alt="Indian Flag">
+            <p>Let’s celebrate the spirit of unity, freedom, and progress as we honor the values that make our nation great. 🇮🇳</p>
+            <p>Wishing you and your loved ones a joyous Republic Day filled with pride and patriotism!</p>
+            <p>Warm regards,<br><strong>Team Reward+</strong></p>
         </div>
         <div class="footer">
-            <p>Thank you for being a valued part of the Reward+ community.</p>
-            <p>&copy; 2025 Reward+ | All rights reserved</p>
+            Jai Hind! 🇮🇳
         </div>
     </div>
 </body>
 </html>
-
 
     `
     return message
