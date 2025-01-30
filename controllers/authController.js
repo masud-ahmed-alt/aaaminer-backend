@@ -364,7 +364,10 @@ export const changePassword = catchAsyncError(async (req, res, next) => {
 
 export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
   const userId = req.user
+  const user = findById(userId)
 
+  // if(user.isBanned)
+  //   return next(new ErrorHandler())
   // Step 1: Get all users and their walletPoints, sorted by walletPoints in descending order
   const topUsers = await User.find({})
     .select('walletPoints')
@@ -377,7 +380,6 @@ export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
   // Step 3: Return the result
   res.status(200).json({
     success: true,
-    isEligible: isInTopTen,
-    topUsers, // Optionally return the top 10 users
+    isEligible: isInTopTen
   });
 })
