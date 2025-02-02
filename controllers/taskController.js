@@ -75,10 +75,10 @@ export const generateDailyTasks = catchAsyncError(async () => {
     });
 
     await Task.insertMany(tasks);
-    const message = `🚨 New Task Alert! 🚨\n New tasks are available for you! Complete it on time to earn extra reward points and climb to the top of the leaderboard!`
+    // const message = `🚨 New Task Alert! 🚨\n New tasks are available for you! Complete it on time to earn extra reward points and climb to the top of the leaderboard!`
     // const imageUrl = "./src/telegram/tasks.jpg"
     // sendTelegramMessage(message, imageUrl)
-    console.log("Tasks created successfully");
+    // console.log("Tasks created successfully");
   } catch (error) {
     console.log("Error while creating tasks: ", error.message || error);
   }
@@ -94,8 +94,8 @@ export const generateScratchCard = catchAsyncError(async () => {
     }
 
     const randomPoints = Array.from({ length: 3 }, () =>
-      Math.floor(Math.random() * (160 - 120 + 1)) + 120
-    );
+      Math.floor(Math.random() * 81)
+    )
 
     const pointsArray = [0, ...randomPoints];
     const shuffledPoints = pointsArray.sort(() => Math.random() - 0.5);
@@ -109,10 +109,10 @@ export const generateScratchCard = catchAsyncError(async () => {
     }));
 
     await ScratchCard.insertMany(scratchCards);
-    const message = `🎉 New Scratch Cards Are Here! 🎉\n We've initiated new scratch cards—scratch now to earn more points and boost your rewards!`
+    // const message = `🎉 New Scratch Cards Are Here! 🎉\n We've initiated new scratch cards—scratch now to earn more points and boost your rewards!`
     // const imageUrl = "./src/telegram/scratchCard.jpg"
     // sendTelegramMessage(message, imageUrl)
-    console.log("New Scratch Cards generated successfully");
+    // console.log("New Scratch Cards generated successfully");
   } catch (error) {
     console.error("Error generating Scratch Cards: ", error.message || error);
   }
