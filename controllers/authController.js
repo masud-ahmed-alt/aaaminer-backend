@@ -364,7 +364,7 @@ export const changePassword = catchAsyncError(async (req, res, next) => {
 
 export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
   const userId = req.user
-  const user = findById(userId)
+  // const user = findById(userId)
 
   // if(user.isBanned)
   //   return next(new ErrorHandler())
