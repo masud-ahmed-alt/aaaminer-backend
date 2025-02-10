@@ -55,26 +55,6 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
     })
 })
 
-export const withdrawHistory = catchAsyncError(async (req, res, next) => {
-
-    const { status } = req.query
-    let withdraw = []
-
-    if (!status) return next(new ErrorHandler("Please select withdraw status. e.g: [success, processing, rejected]"))
-    if (status === "processing")
-        withdraw = await Withdraw.find({ status: "processing" })
-    if (status === "success")
-        withdraw = await Withdraw.find({ status: "success" })
-    if (status === "rejected")
-        withdraw = await Withdraw.find({ status: "rejected" })
-
-    res.status(200).json({
-        success: true,
-        withdraw
-    })
-})
-
-
 export const setupSocketEvents = (io) => {
     io.on('connection', async (socket) => {
         console.log('New client connected:', socket.id);
@@ -127,7 +107,6 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Failed to send announcement emails.", 500));
     }
 });
-
 
 export const createHomeNotification = catchAsyncError(async (req, res, next) => {
     const { title } = req.body;
@@ -383,5 +362,25 @@ export const getBannedUser = catchAsyncError(async (req, res, next) => {
         success: true,
         count: bannedUsers.length,
         users: bannedUsers,
+    });
+});
+
+
+export const withdrawHistory = catchAsyncError(async (req, res, next) => {
+    const { status } = req.query;
+    if (!status) return next(new ErrorHandler("Please select withdraw status. e.g: [success, processing, rejected]"));
+
+
+    const validStatuses = ["processing", "success", "rejected"];
+    if (!validStatuses.includes(status)) {
+        return next(new ErrorHandler(`Invalid status. Valid options are: ${validStatuses.join(', ')}`));
+    }
+
+    const withdraws = await Withdraw.find({ status })
+        .populate("user", "name username")
+
+    res.status(200).json({
+        success: true,
+        withdraw: withdraws,
     });
 });

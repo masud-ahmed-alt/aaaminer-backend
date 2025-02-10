@@ -1,7 +1,8 @@
 import express from "express"
 import {
     adminLogin, adminProfile, adminRegister, allUsers,
-    createHomeNotification, deleteCarousalImage, getBannedUser, getSingleUser, getSuspectedUser, sendAnnouncementEmail,
+    createHomeNotification, deleteCarousalImage, getBannedUser, getSingleUser,
+    getSuspectedUser, sendAnnouncementEmail,
     uploadCarousalImage,
     userGrowData, withdrawHistory
 } from "../controllers/adminController.js";

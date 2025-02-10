@@ -152,45 +152,6 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
   }
 })
 
-// Withdraw functionalities
-export const withdrawRequest = catchAsyncError(async (req, res, next) => {
-  const user = req.user;
-  const { wallet } = req.body;
-
-  const userData = await User.findById(user);
-  if (!userData)
-    return next(new ErrorHandler("User not found", 404));
-
-  if (!wallet || wallet < 10000)
-    return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
-
-  if (wallet > 50000)
-    return next(new ErrorHandler("Maximum redeem points is 50,000", 400));
-
-
-  if (userData.walletPoints < wallet)
-    return next(new ErrorHandler("Insufficient points", 400));
-
-  const amount = wallet * 0.001;
-
-  userData.walletPoints -= wallet;
-
-  const withdraw = await Withdraw.create({
-    userid: user,
-    name: "Amazon gift voucher",
-    amount,
-    points: wallet
-  });
-  
-
-  await userData.save();
-
-  res.status(201).json({
-    success: true,
-    message: "Withdrawal request created successfully"
-  });
-});
-
 // send OTP for email verification
 
 export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
@@ -362,13 +323,14 @@ export const changePassword = catchAsyncError(async (req, res, next) => {
 });
 
 
-export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
+export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => {
   const userId = req.user
-  // const user = findById(userId)
+  const user = await User.findById(userId)
 
-  // if(user.isBanned)
-  //   return next(new ErrorHandler())
-  // Step 1: Get all users and their walletPoints, sorted by walletPoints in descending order
+  if (user.isBanned)
+    return next(new ErrorHandler("Your are permanently banned", 401))
+  
+  
   const topUsers = await User.find({})
     .select('walletPoints')
     .sort({ walletPoints: -1 })
@@ -376,6 +338,8 @@ export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
 
   // Step 2: Check if the current user is in the top 10
   const isInTopTen = topUsers.some(user => user._id.toString() === userId.toString());
+  if (!isInTopTen)
+    return next(new ErrorHandler("Your not in top 10 position. Please collect more points", 400))
 
   // Step 3: Return the result
   res.status(200).json({
@@ -383,3 +347,42 @@ export const checkRedeemEligibility = catchAsyncError(async(req, res, next)=>{
     isEligible: isInTopTen
   });
 })
+
+// Withdraw functionalities
+export const withdrawRequest = catchAsyncError(async (req, res, next) => {
+  const user = req.user;
+  const { wallet } = req.body;
+
+  const userData = await User.findById(user);
+  if (!userData)
+    return next(new ErrorHandler("User not found", 404));
+
+  if (!wallet || wallet < 10000)
+    return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
+
+  if (wallet > 50000)
+    return next(new ErrorHandler("Maximum redeem points is 50,000", 400));
+
+
+  if (userData.walletPoints < wallet)
+    return next(new ErrorHandler("Insufficient points", 400));
+
+  const amount = wallet * 0.001;
+
+  userData.walletPoints -= wallet;
+
+  const withdraw = await Withdraw.create({
+    user: user,
+    name: "Amazon gift voucher",
+    amount,
+    points: wallet
+  });
+
+
+  await userData.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Withdrawal request created successfully"
+  });
+});
