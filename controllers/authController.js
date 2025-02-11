@@ -324,29 +324,45 @@ export const changePassword = catchAsyncError(async (req, res, next) => {
 
 
 export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => {
-  const userId = req.user
-  const user = await User.findById(userId)
-
-  if (user.isBanned)
-    return next(new ErrorHandler("Your are permanently banned", 401))
-
-
-  const topUsers = await User.find({})
-    .select('walletPoints')
+  const userId = req.user;
+  if (!userId) {
+    return next(new ErrorHandler("Invalid user ID", 400));
+  }
+  // Fetch the user with only required fields
+  const user = await User.findById(userId).select("walletPoints isBanned");
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+  // Consolidate all ineligibility checks
+  if (user.isBanned) {
+    return next(new ErrorHandler("You are permanently banned", 401));
+  } else if (user.walletPoints < 10000) {
+    return next(new ErrorHandler("You are not eligible to redeem", 401));
+  }
+  // Step 1: Check if the user is in the top 10
+  const topUsers = await User.find({
+    walletPoints: { $gt: 10000 },
+    isBanned: false,
+    isVerified: true,
+  })
     .sort({ walletPoints: -1 })
-    .limit(10);
+    .limit(10)
+    .select("_id");
 
-  // Step 2: Check if the current user is in the top 10
-  const isInTopTen = topUsers.some(user => user._id.toString() === userId.toString());
-  if (!isInTopTen)
-    return next(new ErrorHandler("Your not in top 10 position. Please collect more points", 400))
+  // Step 2: Check if the user is in the top 10 list
+  const isInTopTen = topUsers.some(u => u._id.toString() === userId.toString());
 
-  // Step 3: Return the result
+  if (!isInTopTen) {
+    return next(new ErrorHandler("You're not in the top 10. Please collect more points.", 400));
+  }
+
+  // Step 3: Return eligibility status
   res.status(200).json({
     success: true,
-    isEligible: isInTopTen
+    isEligible: true,
   });
-})
+});
+
 
 // Withdraw functionalities
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
@@ -357,10 +373,10 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (!userData)
     return next(new ErrorHandler("User not found", 404));
 
-  if(userData.isBanned)
+  if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
 
-  if (!wallet || wallet < 10000 || userData.walletPoints<10000)
+  if (!wallet || wallet < 10000 || userData.walletPoints < 10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
   if (wallet > 50000)
