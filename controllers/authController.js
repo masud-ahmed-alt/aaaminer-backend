@@ -329,8 +329,8 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
 
   if (user.isBanned)
     return next(new ErrorHandler("Your are permanently banned", 401))
-  
-  
+
+
   const topUsers = await User.find({})
     .select('walletPoints')
     .sort({ walletPoints: -1 })
@@ -357,12 +357,14 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (!userData)
     return next(new ErrorHandler("User not found", 404));
 
-  if (!wallet || wallet < 10000)
+  if(userData.isBanned)
+    return next(new ErrorHandler("You're not eligible to redeem", 400));
+
+  if (!wallet || wallet < 10000 || userData.walletPoints<10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
   if (wallet > 50000)
     return next(new ErrorHandler("Maximum redeem points is 50,000", 400));
-
 
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
@@ -378,11 +380,9 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     points: wallet
   });
 
-
   await userData.save();
-
   res.status(201).json({
     success: true,
-    message: "Withdrawal request created successfully"
+    message: "Withdrawal requested"
   });
 });

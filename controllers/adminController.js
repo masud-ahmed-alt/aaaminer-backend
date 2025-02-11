@@ -365,6 +365,33 @@ export const getBannedUser = catchAsyncError(async (req, res, next) => {
     });
 });
 
+export const userBanActions = catchAsyncError(async (req, res, next) => {
+    const { userId } = req.params;
+    const { action } = req.body;
+
+    if (!userId)
+        return next(new ErrorHandler("User ID is required", 400));
+
+    if (!["ban", "unban"].includes(action))
+        return next(new ErrorHandler("Please enter a valid action [eg: ban, unban]", 400));
+
+    const user = await User.findById(userId);
+    if (!user)
+        return next(new ErrorHandler("User not found", 404));
+
+    const shouldBan = action === "ban";
+    if (user.isBanned === shouldBan)
+        return next(new ErrorHandler(`User is already ${shouldBan ? "banned" : "unbanned"}`, 400));
+
+    user.isBanned = shouldBan;
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: `User successfully ${shouldBan ? "banned" : "unbanned"}`,
+    });
+});
+
 
 export const withdrawHistory = catchAsyncError(async (req, res, next) => {
     const { status } = req.query;
@@ -384,3 +411,50 @@ export const withdrawHistory = catchAsyncError(async (req, res, next) => {
         withdraw: withdraws,
     });
 });
+
+export const withdrawRequestActions = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+    if (!id) {
+        return next(new ErrorHandler("Please select withdraw id", 400));
+    }
+    const { action, couponCode } = req.body;
+    if (!["accept", "reject"].includes(action)) {
+        return next(new ErrorHandler("Please select a valid action [eg: accept, reject]", 400));
+    }
+    const withdraw = await Withdraw.findById(id);
+
+    if (!withdraw) {
+        return next(new ErrorHandler("Withdraw request not found", 404));
+    }
+    if (action === "reject") {
+        if (withdraw.status === "rejected")
+            return next(new ErrorHandler("Withdraw request already rejected", 400));
+        const user = await User.findById(withdraw.user)
+        user.walletPoints += withdraw.points
+        withdraw.status = "rejected";
+        withdraw.voucher = "";
+        await withdraw.save()
+        await user.save()
+        return res.status(200).json({
+            success: true,
+            message: "Withdraw request rejected",
+        });
+    }
+    if (action === "accept") {
+        if (withdraw.status === "success")
+            return next(new ErrorHandler("Withdraw request already accepted", 400));
+
+        if (!couponCode || couponCode.trim() === "") {
+            return next(new ErrorHandler("Please input a valid coupon value", 400));
+        }
+        withdraw.voucher = couponCode.trim();
+        withdraw.status = "success";
+        await withdraw.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Withdraw request accepted",
+        });
+    }
+});
+

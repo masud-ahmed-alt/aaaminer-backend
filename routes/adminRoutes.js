@@ -4,7 +4,9 @@ import {
     createHomeNotification, deleteCarousalImage, getBannedUser, getSingleUser,
     getSuspectedUser, sendAnnouncementEmail,
     uploadCarousalImage,
-    userGrowData, withdrawHistory
+    userBanActions,
+    userGrowData, withdrawHistory,
+    withdrawRequestActions
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js"
 
@@ -19,6 +21,10 @@ router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
 // router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
+router.post("/withdraw-actions/:id",isAdmin, withdrawRequestActions)
+
+
+
 router.get("/user-growth", isAdmin, userGrowData)
 
 
@@ -37,5 +43,6 @@ router.get("/get-single-user/:id", isAdmin, getSingleUser);
 // find suspected users
 router.get("/get-suspected-user", isAdmin, getSuspectedUser);
 router.get("/get-banned-user", isAdmin, getBannedUser);
+router.get("/user-ban-action/:userId", isAdmin, userBanActions);
 
 export default router;
