@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer';
 import ScratchCard from "../models/ScratchCard.js";
 import Task from "../models/Task.js";
 import { getOTPMessage } from "./otpMessage.js";
+import User from '../models/User.js';
 
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
@@ -13,8 +14,6 @@ const cookieOptions = {
     httpOnly: true,
     secure: true
 }
-
-
 const sendToken = (resp, user, code, message) => {
     const userWithoutPassword = user.toObject();
     delete userWithoutPassword.password;
@@ -27,8 +26,6 @@ const sendToken = (resp, user, code, message) => {
         message,
     })
 }
-
-
 
 const sendEmail = async (email, subject, htmlContent, next) => {
     const transporter = nodemailer.createTransport({
@@ -55,8 +52,6 @@ const sendEmail = async (email, subject, htmlContent, next) => {
         return new Error('Failed to send email');
     }
 };
-
-
 
 const getAvailableTasks = async (userId) => {
     return await Task.find({ completedBy: { $ne: userId } }).select("-completedBy").sort({ "createdAt": +1 })
@@ -119,9 +114,42 @@ const sendTelegramMessage = (message, imagePath) => {
         })
 }
 
+const findSuspectedUser = async ()=>{
+    const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
 
+    const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/; 
+    const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/; 
+    const unknownDomainRegex = new RegExp(`@(?!(${knownDomains.join('|')})$).*`, 'i'); 
+
+  
+    const nameWithExtraDotsRegex = /(\.{2,})/; 
+    const nameTooManySegmentsRegex = /(\.[^.]+){2,}/; 
+    const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/; 
+
+  
+    const suspectedUsers = await User.find({
+        $or: [
+          
+            { email: { $regex: extraDotsRegex } },
+            { email: { $regex: tooManySegmentsRegex } }, 
+            { email: { $regex: unknownDomainRegex } }, 
+
+       
+            { name: { $regex: nameWithExtraDotsRegex } }, 
+            { name: { $regex: nameTooManySegmentsRegex } },
+            { name: { $regex: nameNonAlphanumericRegex } }, 
+        ]
+    });
+
+    return suspectedUsers
+}
 
 export {
-    cookieOptions, generateOTP, getAvailableScratchCard, getAvailableTasks, sendEmail, sendTelegramMessage, sendToken, setAndSendOTP, storage
+    cookieOptions, generateOTP,
+    getAvailableScratchCard,
+    getAvailableTasks, sendEmail,
+    sendTelegramMessage,
+    findSuspectedUser,
+    sendToken, setAndSendOTP, storage
 };
 

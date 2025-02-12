@@ -7,6 +7,8 @@ import { sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 import HomeNotification from '../models/HomeNotification.js';
 import bcrypt from 'bcryptjs';
+import moment from 'moment';
+import mongoose from 'mongoose';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, username, password, referal } = req.body;
@@ -361,13 +363,14 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
 
 
 // Withdraw functionalities
+
+
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const { wallet } = req.body;
 
   const userData = await User.findById(user);
-  if (!userData)
-    return next(new ErrorHandler("User not found", 404));
+  if (!userData) return next(new ErrorHandler("User not found", 404));
 
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
@@ -381,20 +384,33 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
 
-  const amount = wallet * 0.001;
+  // Check if user already requested withdrawal in the current month
+  const startOfMonth = moment().startOf("month").toDate();
+  const endOfMonth = moment().endOf("month").toDate();
 
+  const existingRequest = await Withdraw.find({
+    user,
+    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+  });
+
+  if (existingRequest)
+    return next(new ErrorHandler("You have already requested a withdrawal this month", 400));
+
+  // Deduct points and create withdrawal request
+  const amount = wallet * 0.001;
   userData.walletPoints -= wallet;
 
-  const withdraw = await Withdraw.create({
+  await Withdraw.create({
     user: user,
     name: "Amazon gift voucher",
     amount,
-    points: wallet
+    points: wallet,
   });
 
   await userData.save();
+
   res.status(201).json({
     success: true,
-    message: "Withdrawal requested"
+    message: "Withdrawal requested",
   });
 });
