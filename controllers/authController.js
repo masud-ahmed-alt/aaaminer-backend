@@ -329,7 +329,7 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
     return next(new ErrorHandler("Invalid user ID", 400));
   }
   // Fetch the user with only required fields
-  const user = await User.findById(userId).select("walletPoints isBanned");
+  const user = await User.findById(userId)
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
   }
@@ -343,20 +343,16 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
   const topUsers = await User.find({
     walletPoints: { $gt: 10000 },
     isBanned: false,
-    isVerified: true,
+    isverified: true,
   })
     .sort({ walletPoints: -1 })
     .limit(10)
-    .select("_id");
 
-  // Step 2: Check if the user is in the top 10 list
   const isInTopTen = topUsers.some(u => u._id.toString() === userId.toString());
 
   if (!isInTopTen) {
     return next(new ErrorHandler("You're not in the top 10. Please collect more points.", 400));
   }
-
-  // Step 3: Return eligibility status
   res.status(200).json({
     success: true,
     isEligible: true,
