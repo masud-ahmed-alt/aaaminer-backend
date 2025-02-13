@@ -388,16 +388,16 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Insufficient points", 400));
 
   // // Check if user already requested withdrawal in the current month
-  const startOfMonth = moment().startOf("month").toDate();
-  const endOfMonth = moment().endOf("month").toDate();
+  // const startOfMonth = moment().startOf("month").toDate();
+  // const endOfMonth = moment().endOf("month").toDate();
 
-  const existingRequest = await Withdraw.findOne({
-    user,
-    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-  });
+  // const existingRequest = await Withdraw.findOne({
+  //   user,
+  //   createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+  // });
 
-  if (existingRequest)
-    return next(new ErrorHandler("You have already requested a withdrawal this month", 400));
+  // if (existingRequest)
+  //   return next(new ErrorHandler("You have already requested a withdrawal this month", 400));
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;
