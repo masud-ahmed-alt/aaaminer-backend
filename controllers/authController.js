@@ -363,8 +363,6 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
 
 
 // Withdraw functionalities
-
-
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const { wallet } = req.body;
@@ -384,11 +382,11 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
 
-  // Check if user already requested withdrawal in the current month
+  // // Check if user already requested withdrawal in the current month
   const startOfMonth = moment().startOf("month").toDate();
   const endOfMonth = moment().endOf("month").toDate();
 
-  const existingRequest = await Withdraw.find({
+  const existingRequest = await Withdraw.findOne({
     user,
     createdAt: { $gte: startOfMonth, $lte: endOfMonth },
   });
