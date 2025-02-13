@@ -126,33 +126,38 @@ export const profile = catchAsyncError(async (req, res, next) => {
 
 // get myvouchers and withdraw request history
 export const myVouchers = catchAsyncError(async (req, res, next) => {
-  const userid = req.user
-  const { status } = req.query
+  try {
+    const userId = req.user;
+    const { status } = req.query;
 
+    if (!status) {
+      return next(new ErrorHandler("Please select status", 400));
+    }
 
-  if (!status)
-    return next(new ErrorHandler("Please select status", 400))
+    const validStatuses = ["success", "processing"];
+    if (!validStatuses.includes(status)) {
+      return next(new ErrorHandler("Invalid status", 400));
+    }
 
-  if (status === "success") {
-    const voucher = await Withdraw.find({ userid, status })
-      .select("name voucher points createdAt updatedAt")
-      .sort("-updatedAt")
+    const selectFields = status === "success"
+      ? "name voucher points createdAt updatedAt"
+      : "name points createdAt updatedAt";
+
+    const sortField = status === "success" ? "-updatedAt" : "-createdAt";
+
+    const vouchers = await Withdraw.find({ user: userId, status })
+      .select(selectFields)
+      .sort(sortField);
+
     return res.status(200).json({
       success: true,
-      voucher
-    })
+      vouchers,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
   }
+});
 
-  if (status === "processing") {
-    const voucher = await Withdraw.find({ userid, status })
-      .select("name points createdAt updatedAt")
-      .sort("-createdAt")
-    return res.status(200).json({
-      success: true,
-      voucher
-    })
-  }
-})
 
 // send OTP for email verification
 
