@@ -47,7 +47,7 @@ export const adminRegister = catchAsyncError(async (req, res, next) => {
 
 export const allUsers = catchAsyncError(async (req, res, next) => {
     const users = await User.find()
-        .select("name username email walletPoints isverified createdAt")
+        .select("name username email walletPoints isverified isBanned createdAt")
         .sort("-createdAt")
     res.status(200).json({
         success: true,
