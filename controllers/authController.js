@@ -1,27 +1,19 @@
 
 import { compare } from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { catchAsyncError } from '../middlewares/errorMiddleware.js';
+import HomeNotification from '../models/HomeNotification.js';
 import User from '../models/User.js';
 import Withdraw from '../models/Withdraw.js';
-import { sendToken, setAndSendOTP } from '../utils/features.js';
+import { generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
-import HomeNotification from '../models/HomeNotification.js';
-import bcrypt from 'bcryptjs';
-import moment from 'moment';
-import mongoose from 'mongoose';
 
 export const register = catchAsyncError(async (req, res, next) => {
-  const { name, email, username, password, referal } = req.body;
+  const { email, password, referal } = req.body;
 
   // Validate all required fields
-  if (!name || !email || !password || !username) {
+  if (!email || !password) {
     return next(new ErrorHandler("All fields are required", 400));
-  }
-
-  // Validate Name: Check for suspicious or malicious characters
-  const nameRegex = /^[a-zA-Z\s.'-]+$/; // Only letters, spaces, periods, and hyphens allowed
-  if (!nameRegex.test(name)) {
-    return next(new ErrorHandler("Invalid name format. Only letters, spaces, periods, and hyphens are allowed.", 400));
   }
 
   // Validate Email: Check for a valid email format
@@ -37,27 +29,12 @@ export const register = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Email domain is not from a trusted provider.", 400));
   }
 
-  // Check if username contains spaces
-  if (/\s/.test(username)) {
-    return next(new ErrorHandler("Username cannot contain spaces", 400));
-  }
-
   // Check if the user already exists by email
   const userExists = await User.findOne({ email });
   if (userExists) {
     return next(new ErrorHandler("You are already registered. Please log in.", 400));
   }
 
-  // Check if the username already exists
-  const checkUser = await User.findOne({ username });
-  if (checkUser) {
-    return next(new ErrorHandler("Username already taken. Please choose a different one.", 400));
-  }
-
-  // Check for self-referral (if the referral is the same as the username)
-  if (username === referal) {
-    return next(new ErrorHandler("Do not put your username in the referral option", 400));
-  }
 
   let referalUser = null;
 
@@ -68,11 +45,11 @@ export const register = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Referral user does not exist", 400));
     }
   }
+   const username = await generateUsername()
 
   try {
     // Create the new user
     const user = await User.create({
-      name,
       email,
       username,
       password,
