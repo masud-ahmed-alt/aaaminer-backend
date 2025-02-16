@@ -51,7 +51,7 @@ export const register = catchAsyncError(async (req, res, next) => {
     // Create the new user
     const user = await User.create({
       email,
-      name:"",
+      name:"Name",
       username,
       password,
       walletPoints: referal ? 500 : 500,
