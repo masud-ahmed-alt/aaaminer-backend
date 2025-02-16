@@ -80,7 +80,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   if (!user) return next(new ErrorHandler("Invalid email or password", 401))
 
   const isMatch = await compare(password, user.password)
-  if (!isMatch) return next(new ErrorHandler("Invalid username or password", 401))
+  if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401))
 
   sendToken(res, user, 200, `Welcome  ${user.name}!`)
 })
