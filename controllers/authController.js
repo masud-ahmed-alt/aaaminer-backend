@@ -65,7 +65,7 @@ export const register = catchAsyncError(async (req, res, next) => {
     });
 
     // Send response with token
-    sendToken(res, user, 201, `Welcome ${user.name}!`);
+    sendToken(res, user, 201, `Welcome`);
   } catch (error) {
     console.error(error);
     return next(new ErrorHandler("Registration failed. Please try again.", 500));
