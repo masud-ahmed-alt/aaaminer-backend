@@ -7,26 +7,22 @@ import { ErrorHandler } from '../utils/utility.js';
 import Carousel from "../models/Carousel.js";
 
 export const getRanking = catchAsyncError(async (req, res, next) => {
-
   try {
-    const userid = req.user;
+    const userId = req.user;
     const { type } = req.query;
 
     if (!type) {
       return next(new ErrorHandler("Please select a type", 400));
     }
 
-    let users;
+    // Define query conditions based on type
+    const query = type === "friend" ? { referredBy: userId, isverified: true } : {};
 
-    if (type === 'all') {
-      users = await User.find()
-        .select("username walletPoints")
-        .sort({ walletPoints: -1 });
-    } else if (type === 'friend') {
-      users = await User.find({ referredBy: userid, isverified: true })
-        .select("username walletPoints")
-        .sort({ walletPoints: -1 });
-    }
+    // Fetch users efficiently
+    const users = await User.find(query)
+      .select("username walletPoints -_id") // Exclude _id for lighter response
+      .sort({ walletPoints: -1 })
+      .lean(); // Improves query performance
 
     res.status(200).json({
       success: true,
@@ -36,7 +32,8 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
     console.error(error);
     return next(new ErrorHandler("Something went wrong", 500));
   }
-})
+});
+
 
 export const generateDailyTasks = catchAsyncError(async () => {
 
