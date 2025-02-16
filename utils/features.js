@@ -160,7 +160,13 @@ const generateUsername = async () => {
     username = username.split('').sort(() => 0.5 - Math.random()).join('');
 
     return username;
-};
+}
+const extractName = async (email) => {
+    if (!email || typeof email !== "string") return null; 
+    return email.split("@")[0]; 
+}
+
+
 
 export {
     cookieOptions, generateOTP,
@@ -169,6 +175,7 @@ export {
     sendTelegramMessage,
     findSuspectedUser,
     sendToken, setAndSendOTP, storage,
-    generateUsername
+    generateUsername,
+    extractName
 };
 

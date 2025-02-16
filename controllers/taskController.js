@@ -15,14 +15,12 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Please select a type", 400));
     }
 
-    // Define query conditions based on type
     const query = type === "friend" ? { referredBy: userId, isverified: true } : {};
 
-    // Fetch users efficiently
     const users = await User.find(query)
-      .select("username walletPoints -_id") // Exclude _id for lighter response
+      .select("username walletPoints -_id") 
       .sort({ walletPoints: -1 })
-      .lean(); // Improves query performance
+      .lean();
 
     res.status(200).json({
       success: true,

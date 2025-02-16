@@ -5,7 +5,7 @@ import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import HomeNotification from '../models/HomeNotification.js';
 import User from '../models/User.js';
 import Withdraw from '../models/Withdraw.js';
-import { generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
+import { extractName, generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
@@ -46,12 +46,13 @@ export const register = catchAsyncError(async (req, res, next) => {
     }
   }
    const username = await generateUsername()
+   const name = await extractName(email)
 
   try {
     // Create the new user
     const user = await User.create({
       email,
-      name:"Name",
+      name,
       username,
       password,
       walletPoints: referal ? 500 : 500,
