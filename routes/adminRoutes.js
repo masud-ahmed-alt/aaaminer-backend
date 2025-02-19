@@ -1,7 +1,7 @@
 import express from "express"
 import {
     adminLogin, adminProfile, adminRegister, allUsers,
-    createHomeNotification, deleteCarousalImage, getBannedUser, getSingleUser,
+    createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
     getSuspectedUser, sendAnnouncementEmail,
     uploadCarousalImage,
     userBanActions,
@@ -19,6 +19,7 @@ router.post('/login', adminLogin);
 
 router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
+router.post("/delete-user/:id", isAdmin, deleteUser)
 // router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
 router.post("/withdraw-actions/:id",isAdmin, withdrawRequestActions)

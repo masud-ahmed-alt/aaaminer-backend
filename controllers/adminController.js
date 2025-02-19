@@ -55,6 +55,22 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
     })
 })
 
+export const deleteUser = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params
+    if (!id) return next(new ErrorHandler("Please provide user id", 400))
+
+    const user = await User.findById(id)
+    if (!user) return next(new ErrorHandler("User not found", 404))
+
+    await user.deleteOne()
+
+    res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+    });
+});
+
+
 export const setupSocketEvents = (io) => {
     io.on('connection', async (socket) => {
         console.log('New client connected:', socket.id);
@@ -318,7 +334,7 @@ export const deleteCarousalImage = catchAsyncError(async (req, res, next) => {
 });
 
 export const getSuspectedUser = catchAsyncError(async (req, res, next) => {
-  
+
     const suspectedUsers = await findSuspectedUser()
 
     res.status(200).json({
