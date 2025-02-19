@@ -7,6 +7,7 @@ import User from '../models/User.js';
 import Withdraw from '../models/Withdraw.js';
 import { extractName, generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
+import moment from 'moment';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { email, password, referal } = req.body;
