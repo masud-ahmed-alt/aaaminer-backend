@@ -363,7 +363,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
   if (!validPoints.has(wallet)) {
-      return next(new ErrorHandler("Invalid point value. Please select from: " + [...validPoints].join(", "), 400));
+      return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
   }
   
 
