@@ -361,8 +361,11 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (!wallet || wallet < 10000 || userData.walletPoints < 10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
-  if (wallet > 50000)
-    return next(new ErrorHandler("Maximum redeem points is 50,000", 400));
+  const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
+  if (!validPoints.has(wallet)) {
+      return next(new ErrorHandler("Invalid point value. Please select from: " + [...validPoints].join(", "), 400));
+  }
+  
 
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
