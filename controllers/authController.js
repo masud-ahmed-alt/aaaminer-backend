@@ -380,7 +380,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 
   if (existingRequest)
-    return next(new ErrorHandler("You have already requested a withdrawal this month", 400));
+    return next(new ErrorHandler("You have already requested a withdrawal this month. Please try next month", 400));
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;

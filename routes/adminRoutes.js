@@ -42,8 +42,8 @@ router.get("/get-single-user/:id", isAdmin, getSingleUser);
 
 
 // find suspected users
-router.get("/get-suspected-user", isAdmin, getSuspectedUser);
-router.get("/get-banned-user", isAdmin, getBannedUser);
-router.get("/user-ban-action/:userId", isAdmin, userBanActions);
+router.post("/get-suspected-user", isAdmin, getSuspectedUser);
+router.post("/get-banned-user", isAdmin, getBannedUser);
+router.post("/user-ban-action/:userId", isAdmin, userBanActions);
 
 export default router;
