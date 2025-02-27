@@ -8,6 +8,7 @@ import Withdraw from '../models/Withdraw.js';
 import { extractName, generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 import moment from 'moment';
+import TopTenUsers from '../models/TopTenUsers.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { email, password, referal } = req.body;
@@ -327,18 +328,9 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
     return next(new ErrorHandler("You are not eligible to redeem", 401));
   }
   // Step 1: Check if the user is in the top 10
-  const topUsers = await User.find({
-    walletPoints: { $gt: 10000 },
-    isBanned: false,
-    isverified: true,
-  })
-    .sort({ walletPoints: -1 })
-    .limit(10)
-
-  const isInTopTen = topUsers.some(u => u._id.toString() === userId.toString());
-
+  const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
   if (!isInTopTen) {
-    return next(new ErrorHandler("You're not in the top 10. Please collect more points.", 400));
+    return next(new ErrorHandler("You're not in the top 10. Please try next time!", 400));
   }
   res.status(200).json({
     success: true,
@@ -363,9 +355,9 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
   if (!validPoints.has(wallet)) {
-      return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
+    return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
   }
-  
+
 
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));

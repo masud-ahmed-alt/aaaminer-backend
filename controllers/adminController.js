@@ -10,6 +10,7 @@ import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
 import { findSuspectedUser, sendEmail, sendToken, storage } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
+import TopTenUsers from '../models/TopTenUsers.js';
 
 
 
@@ -450,3 +451,24 @@ export const withdrawRequestActions = catchAsyncError(async (req, res, next) => 
     }
 });
 
+export const setTopTenUser = catchAsyncError(async (req, res, next) => {
+    await TopTenUsers.deleteMany();
+    const topTenUsers = await User.find({
+        walletPoints: { $gt: 10000 },
+        isBanned: false,
+        isverified: true,
+    })
+        .select("_id")
+        .sort({ walletPoints: -1 })
+        .limit(10);
+
+    if (topTenUsers.length > 0) {
+        const topTenUsersData = topTenUsers.map(user => ({ user: user._id }));
+        await TopTenUsers.insertMany(topTenUsersData);
+    }
+
+    res.status(200).json({
+        success: true,
+        message:"Top 10 users created!"
+    });
+});
