@@ -327,6 +327,11 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
   } else if (user.walletPoints < 10000) {
     return next(new ErrorHandler("You are not eligible to redeem", 401));
   }
+
+  const topUsersCount = await TopTenUsers.find().countDocuments()
+  if (topUsersCount < 1)
+    return next(new ErrorHandler("Redeem not initiated right now!", 400));
+
   // Step 1: Check if the user is in the top 10
   const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
   if (!isInTopTen) {
