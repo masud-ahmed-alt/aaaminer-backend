@@ -36,7 +36,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.use(cors({
-    origin: ['http://localhost:5173', null],
+    origin: ['http://localhost:5173','https://rewardplus-admin-dashboard.pages.dev', null],
     credentials: true
 }));
 
