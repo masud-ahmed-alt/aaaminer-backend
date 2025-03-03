@@ -330,12 +330,12 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
 
   const topUsersCount = await TopTenUsers.find().countDocuments()
   if (topUsersCount < 1)
-    return next(new ErrorHandler("Redeem not initiated right now!", 400));
+    return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
 
   // Step 1: Check if the user is in the top 10
   const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
   if (!isInTopTen) {
-    return next(new ErrorHandler("You're not in the top 10. Please try next time!", 400));
+    return next(new ErrorHandler("You are not eligible at this time. Please try again next time.", 400));
   }
   res.status(200).json({
     success: true,
@@ -377,7 +377,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 
   if (existingRequest)
-    return next(new ErrorHandler("You have already requested a withdrawal this month. Please try next month", 400));
+    return next(new ErrorHandler("Due to some limitation, only one request can be made per month.", 400));
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;
