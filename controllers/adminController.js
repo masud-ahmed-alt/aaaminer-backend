@@ -11,6 +11,8 @@ import { announcementMsg } from "../utils/announcementMsg.js";
 import { findSuspectedUser, sendEmail, sendToken, storage } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import TopTenUsers from '../models/TopTenUsers.js';
+import { banMailMsg } from '../utils/banMessage.js';
+import { unbanMailMsg } from '../utils/unbanMessage.js';
 
 
 
@@ -359,30 +361,43 @@ export const getBannedUser = catchAsyncError(async (req, res, next) => {
 });
 
 export const userBanActions = catchAsyncError(async (req, res, next) => {
-    const { userId } = req.params;
-    const { action } = req.body;
+    try {
+        const { userId } = req.params;
+        const { action } = req.body;
 
-    if (!userId)
-        return next(new ErrorHandler("User ID is required", 400));
+        if (!userId)
+            return next(new ErrorHandler("User ID is required", 400));
 
-    if (!["ban", "unban"].includes(action))
-        return next(new ErrorHandler("Please enter a valid action [eg: ban, unban]", 400));
+        if (!["ban", "unban"].includes(action))
+            return next(new ErrorHandler("Please enter a valid action [eg: ban, unban]", 400));
 
-    const user = await User.findById(userId);
-    if (!user)
-        return next(new ErrorHandler("User not found", 404));
+        const user = await User.findById(userId);
+        if (!user)
+            return next(new ErrorHandler("User not found", 404));
 
-    const shouldBan = action === "ban";
-    if (user.isBanned === shouldBan)
-        return next(new ErrorHandler(`User is already ${shouldBan ? "banned" : "unbanned"}`, 400));
+        const shouldBan = action === "ban";
+        if (user.isBanned === shouldBan)
+            return next(new ErrorHandler(`User is already ${shouldBan ? "banned" : "unbanned"}`, 400));
 
-    user.isBanned = shouldBan;
-    await user.save();
+        user.isBanned = shouldBan;
+        await user.save();
 
-    res.status(200).json({
-        success: true,
-        message: `User successfully ${shouldBan ? "banned" : "unbanned"}`,
-    });
+        // Attempt to send email, but don't let failures block the response
+        try {
+            const subject = shouldBan ? "Account Suspension" : "Account Unbanned";
+            const message = shouldBan ? banMailMsg(user.name) : unbanMailMsg(user.name);
+            await sendEmail(user.email, subject, message);
+        } catch (emailError) {
+            console.error("Failed to send email:", emailError);
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `User successfully ${shouldBan ? "banned" : "unbanned"}`,
+        });
+    } catch (error) {
+        next(error);
+    }
 });
 
 
@@ -469,7 +484,7 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message:"Top 10 users created!"
+        message: "Top 10 users created!"
     });
 });
 
@@ -490,7 +505,7 @@ const topUser = async () => {
         .select("user");
 
     users.forEach(element => {
-        console.log(element.user.username); 
+        console.log(element.user.username);
     });
 };
 
