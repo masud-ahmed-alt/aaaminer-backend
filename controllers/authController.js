@@ -335,7 +335,7 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
   // Step 1: Check if the user is in the top 10
   const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
   if (!isInTopTen) {
-    return next(new ErrorHandler("You have not made it to the top 10 this month. Please try again next month.", 400));
+    return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
   }
   res.status(200).json({
     success: true,
