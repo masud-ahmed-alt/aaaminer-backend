@@ -1,4 +1,4 @@
-export const getOTPMessage = (subject,name, otp)=>{
+export const getOTPMessage = (name, otp)=>{
     const otpMessage=`
     
 <!DOCTYPE html>
@@ -58,7 +58,7 @@ export const getOTPMessage = (subject,name, otp)=>{
 </head>
 <body>
     <div class="email-container">
-        <h1>${subject}</h1>
+        <h1>Password Recovery</h1>
         <p>Hello, <strong>${name}</strong></p>
         <p>Your One-Time Password (OTP) is:</p>
         <div class="otp-code">${otp}</div>
