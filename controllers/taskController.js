@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import { getAvailableScratchCard, getAvailableTasks, sendTelegramMessage } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 import Carousel from "../models/Carousel.js";
+import TopTenUsers from '../models/TopTenUsers.js';
 
 export const getRanking = catchAsyncError(async (req, res, next) => {
   try {
@@ -15,12 +16,27 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Please select a type", 400));
     }
 
-    const query = type === "friend" ? { referredBy: userId, isverified: true } : {};
+    let users = [];
 
-    const users = await User.find(query)
-      .select("username walletPoints -_id") 
-      .sort({ walletPoints: -1 })
-      .lean();
+    if (type === "friend") {
+      users = await User.find({ referredBy: userId, isverified: true })
+        .select("username walletPoints -_id")
+        .sort({ walletPoints: -1 })
+        .lean();
+    } else if (type === "toppers") {
+      const topUsers = await TopTenUsers.find()
+        .populate("user", "username walletPoints -_id")
+        .lean();
+      users = topUsers.map((entry) => ({
+        username: entry.user?.username,
+        walletPoints: entry.user?.walletPoints,
+      }));
+    } else {
+      users = await User.find()
+        .select("username walletPoints -_id")
+        .sort({ walletPoints: -1 })
+        .lean();
+    }
 
     res.status(200).json({
       success: true,
@@ -31,6 +47,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Something went wrong", 500));
   }
 });
+
 
 
 export const generateDailyTasks = catchAsyncError(async () => {

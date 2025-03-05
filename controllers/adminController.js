@@ -382,7 +382,7 @@ export const userBanActions = catchAsyncError(async (req, res, next) => {
         user.isBanned = shouldBan;
         await user.save();
 
-        // Attempt to send email, but don't let failures block the response
+
         try {
             const subject = shouldBan ? "Account Suspension" : "Account Unbanned";
             const message = shouldBan ? banMailMsg(user.name) : unbanMailMsg(user.name);
