@@ -1,17 +1,17 @@
 export const announcementMsg = (fullname)=>{
     const message =`
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reward+ Engagement Email</title>
+  <title>Exciting Updates from Reward+</title>
   <style>
     /* Global Styles */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f9f9f9;
-      color: #333333;
+      background-color: #f4f4f4;
+      color: #333;
       margin: 0;
       padding: 0;
     }
@@ -22,16 +22,18 @@ export const announcementMsg = (fullname)=>{
       margin: 40px auto;
       background-color: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       overflow: hidden;
     }
 
     /* Header */
     .email-header {
-      background-color: #341138;
-      padding: 20px;
+      background-color: #4A148C;
+      padding: 25px;
       text-align: center;
       color: white;
+      font-size: 22px;
+      font-weight: bold;
     }
 
     /* Content */
@@ -40,9 +42,9 @@ export const announcementMsg = (fullname)=>{
       text-align: left;
     }
 
-    .email-content h1 {
-      font-size: 24px;
-      color: #341138;
+    .email-content h2 {
+      font-size: 22px;
+      color: #4A148C;
     }
 
     .email-content p {
@@ -53,30 +55,31 @@ export const announcementMsg = (fullname)=>{
     /* Button */
     .cta-button-wrapper {
       text-align: center;
-      margin-top: 20px;
+      margin: 20px 0;
     }
 
     .cta-button {
       display: inline-block;
-      background-color: #341138;
+      background-color: #4A148C;
       color: white;
-      padding: 12px 20px;
+      padding: 14px 24px;
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 16px;
+      font-weight: bold;
     }
 
     .cta-button:hover {
-      background-color: #45a049;
+      background-color: #7B1FA2;
     }
 
     /* Footer */
     .email-footer {
       background-color: #f1f1f1;
-      padding: 10px;
+      padding: 15px;
       text-align: center;
       font-size: 14px;
-      color: #666666;
+      color: #555;
     }
   </style>
 </head>
@@ -84,25 +87,29 @@ export const announcementMsg = (fullname)=>{
   <div class="email-container">
     <!-- Email Header -->
     <div class="email-header">
-      <h1>Hello ${fullname}</h1>
+      Exciting News, ${fullname}!
     </div>
 
     <!-- Email Content -->
     <div class="email-content">
+      <h2>Your Rewards Just Got Better!</h2>
       <p>
-        We hope you're enjoying your journey with Reward+. Here's a quick update: new tasks and challenges await you, along with exciting rewards up for grabs!
+        We're thrilled to announce that the redeem functionality is now live on Reward+! Your points are more valuable than ever—exchange them for exclusive rewards and special offers today.
       </p>
       <p>
-        Don't miss out on the latest rewards and exclusive offers curated just for you.
+        More ways to earn, new challenges, and personalized deals are waiting for you. Stay engaged and keep unlocking bigger perks!
+      </p>
+      <p>
+        Log in now to explore the latest updates. Your next big reward is just a click away!
       </p>
       <div class="cta-button-wrapper">
-        <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Explore Rewards Now</a>
+        <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Claim Your Rewards</a>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="email-footer">
-      <p>You received this email because you're a valued member of Reward+.</p>
+      <p>You're receiving this email because you're a valued member of Reward+.</p>
     </div>
   </div>
 </body>
