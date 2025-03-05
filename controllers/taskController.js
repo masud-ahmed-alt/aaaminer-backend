@@ -29,7 +29,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         .lean();
       users = topUsers.map((entry) => ({
         username: entry.user?.username,
-        walletPoints: entry.user?.walletPoints,
+        walletPoints: 0,
       }));
     } else {
       users = await User.find()
