@@ -195,10 +195,7 @@ export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email })
   if (!user) return next(new ErrorHandler("Email not found !", 404))
-
   setAndSendOTP(user, "OTP for Password Recovery Reward+!")
-
-
   res.status(200).json({
     success: true,
     message: `OTP send to ${email}`
