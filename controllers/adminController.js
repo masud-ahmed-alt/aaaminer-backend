@@ -101,9 +101,9 @@ export const setupSocketEvents = (io) => {
 };
 
 export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
-    const { subject } = req.body
-    if (!subject)
-        return next(new ErrorHandler("Please provide subject of the mail", 400))
+    // const { subject } = req.body
+    // if (!subject)
+    //     return next(new ErrorHandler("Please provide subject of the mail", 400))
     // Fetch verified users
     const users = await User.find({ isverified: true }).select("name email");
 
@@ -113,7 +113,7 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
         // Send emails in parallel using Promise.all
         await Promise.all(
             users.map(async (user) => {
-                await sendEmail(user.email, subject, announcementMsg(user.name));
+                await sendEmail(user.email, `Dear ${user.name} ! Exciting rewards are waiting.....`, announcementMsg(user.name));
             })
         );
 
