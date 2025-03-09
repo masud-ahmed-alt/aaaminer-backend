@@ -13,6 +13,7 @@ import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
+import { homePage } from './utils/homePage.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +37,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.use(cors({
-    origin: ['http://localhost:5173','https://rewardplus-admin-dashboard.pages.dev', null],
+    origin: ['http://localhost:5173', 'https://rewardplus-admin-dashboard.pages.dev', null],
     credentials: true
 }));
 
@@ -79,6 +80,10 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error("Unhandled Rejection at: ", promise, "reason: ", reason);
     process.exit(1);
 });
+
+app.get("/", (req, resp) => {
+    resp.send(homePage())
+})
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

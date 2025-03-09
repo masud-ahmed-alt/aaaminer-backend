@@ -1,5 +1,5 @@
-export const announcementMsg = (fullname)=>{
-    const message =`
+export const announcementMsg = (fullname) => {
+  const message = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,7 +7,6 @@ export const announcementMsg = (fullname)=>{
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exciting Updates from Reward+</title>
   <style>
-    /* Global Styles */
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f4f4f4;
@@ -16,7 +15,6 @@ export const announcementMsg = (fullname)=>{
       padding: 0;
     }
 
-    /* Container */
     .email-container {
       max-width: 600px;
       margin: 40px auto;
@@ -26,7 +24,6 @@ export const announcementMsg = (fullname)=>{
       overflow: hidden;
     }
 
-    /* Header */
     .email-header {
       background-color: #4A148C;
       padding: 25px;
@@ -36,7 +33,6 @@ export const announcementMsg = (fullname)=>{
       font-weight: bold;
     }
 
-    /* Content */
     .email-content {
       padding: 20px;
       text-align: left;
@@ -50,12 +46,12 @@ export const announcementMsg = (fullname)=>{
     .email-content p {
       font-size: 16px;
       line-height: 1.6;
+      margin-bottom: 16px;
     }
 
-    /* Button */
     .cta-button-wrapper {
       text-align: center;
-      margin: 20px 0;
+      margin: 30px 0;
     }
 
     .cta-button {
@@ -73,7 +69,6 @@ export const announcementMsg = (fullname)=>{
       background-color: #7B1FA2;
     }
 
-    /* Footer */
     .email-footer {
       background-color: #f1f1f1;
       padding: 15px;
@@ -85,36 +80,39 @@ export const announcementMsg = (fullname)=>{
 </head>
 <body>
   <div class="email-container">
-    <!-- Email Header -->
+    <!-- Header -->
     <div class="email-header">
-      Exciting News, ${fullname}!
+      Big News for You, ${fullname}!
     </div>
 
-    <!-- Email Content -->
+    <!-- Content -->
     <div class="email-content">
-      <h2>Your Rewards Just Got Better!</h2>
+      <h2>Reward+ Just Got Even Better!</h2>
       <p>
-        We're thrilled to announce that the redeem functionality is now live on Reward+! Your points are more valuable than ever—exchange them for exclusive rewards and special offers today.
+        We're excited to share that the *Redeem* feature is now live on Reward+! That means your points can now be turned into exclusive rewards, amazing deals, and exciting offers—starting today.
       </p>
       <p>
-        More ways to earn, new challenges, and personalized deals are waiting for you. Stay engaged and keep unlocking bigger perks!
+        That’s not all—look out for new ways to earn, exciting challenges, and personalized perks made just for you. The Reward+ experience is now more rewarding than ever!
       </p>
       <p>
-        Log in now to explore the latest updates. Your next big reward is just a click away!
+        Tap below to explore what's new and start redeeming your points. Don’t miss out—your next reward is just a click away.
       </p>
+
       <div class="cta-button-wrapper">
-        <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">Claim Your Rewards</a>
+        <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
+          Explore & Redeem Now
+        </a>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="email-footer">
-      <p>You're receiving this email because you're a valued member of Reward+.</p>
+      <p>You’re receiving this email because you're a valued member of the Reward+ community.</p>
+      <p>Make sure your app is up-to-date to enjoy the latest features!</p>
     </div>
   </div>
 </body>
 </html>
-
-    `
-    return message
+  `;
+  return message;
 }
