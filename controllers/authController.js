@@ -18,37 +18,54 @@ export const register = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
-  // Validate Email: Check for a valid email format
+  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return next(new ErrorHandler("Invalid email format", 400));
   }
 
-  // Check for unknown or suspicious domain in the email
+  // Split email into local part and domain
+  const [localPart, domain] = email.split('@');
+
+  // Validate against known/trusted domains
   const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
-  const emailDomain = email.split('@')[1];
-  if (!knownDomains.includes(emailDomain)) {
+  if (!knownDomains.includes(domain)) {
     return next(new ErrorHandler("Email domain is not from a trusted provider.", 400));
   }
 
-  // Check if the user already exists by email
+  // Additional stricter checks for Gmail
+  if (domain === 'gmail.com') {
+    // Reject if too many dots in local part (e.g., more than 2)
+    const dotCount = (localPart.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      return next(new ErrorHandler("Suspicious email detected.", 400));
+    }
+
+    // Reject if local part starts/ends with dot or has consecutive dots
+    if (/(\.\.)|(^\.)|(\.$)/.test(localPart)) {
+      return next(new ErrorHandler("Suspicious email detected.", 400));
+    }
+  }
+
+  // Check if user already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     return next(new ErrorHandler("You are already registered. Please log in.", 400));
   }
 
-
   let referalUser = null;
 
-  // Handle referral logic if referral is provided
+  // Check referral username if provided
   if (referal) {
     referalUser = await User.findOne({ username: referal });
     if (!referalUser) {
       return next(new ErrorHandler("Referral user does not exist", 400));
     }
   }
-  const username = await generateUsername()
-  const name = await extractName(email)
+
+  // Auto-generate username and name
+  const username = await generateUsername();
+  const name = await extractName(email);
 
   try {
     // Create the new user
@@ -57,7 +74,7 @@ export const register = catchAsyncError(async (req, res, next) => {
       name,
       username,
       password,
-      walletPoints: referal ? 500 : 500,
+      walletPoints: 500,
       referredBy: referalUser ? referalUser._id : null,
     });
 
@@ -74,6 +91,7 @@ export const register = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Registration failed. Please try again.", 500));
   }
 });
+
 
 
 export const login = catchAsyncError(async (req, res, next) => {
