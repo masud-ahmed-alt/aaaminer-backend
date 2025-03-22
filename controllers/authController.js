@@ -265,6 +265,8 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Profile not found", 404));
   }
 
+  if (!name)
+    return next(new ErrorHandler("Name field is required!", 400))
 
   if (name && typeof name !== "string") {
     return next(new ErrorHandler("Invalid name format", 400));
