@@ -5,7 +5,7 @@ export const announcementMsg = (fullname) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exciting News from Reward+</title>
+  <title>Exciting Rewards Await!</title>
   <style>
     body {
       margin: 0;
@@ -25,7 +25,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .email-header {
-      background: linear-gradient(135deg, #7b1fa2, #512da8);
+      background: linear-gradient(135deg, #ff9800, #f44336);
       padding: 36px 24px;
       text-align: center;
       color: #ffffff;
@@ -40,7 +40,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .email-content h2 {
-      color: #512da8;
+      color: #d84315;
       font-size: 22px;
       margin-bottom: 18px;
     }
@@ -52,7 +52,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .highlight {
-      color: #7b1fa2;
+      color: #ff9800;
       font-weight: 600;
     }
 
@@ -63,7 +63,7 @@ export const announcementMsg = (fullname) => {
 
     .cta-button {
       display: inline-block;
-      background-color: #7b1fa2;
+      background-color: #ff9800;
       color: #ffffff;
       text-decoration: none;
       padding: 14px 32px;
@@ -74,7 +74,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .cta-button:hover {
-      background-color: #9c27b0;
+      background-color: #f57c00;
     }
 
     .email-footer {
@@ -107,25 +107,25 @@ export const announcementMsg = (fullname) => {
   <div class="email-container">
     <!-- Header -->
     <div class="email-header">
-      🎉 Hey ${fullname}, Something Awesome Just Landed!
+      🎉 Big News, ${fullname}! Your Next Reward is Waiting!
     </div>
 
     <!-- Content -->
     <div class="email-content">
-      <h2>✨ Meet the All-New <span class="highlight">Redeem</span> Experience</h2>
+      <h2>🚀 Exclusive Rewards Just for You!</h2>
       <p>
-        We’ve just launched one of our most exciting features yet! Now you can turn your points into amazing rewards, exclusive deals, and personalized offers—starting today.
+        Exciting updates just dropped in <span class="highlight">Reward+</span>! Now, you can turn your points into **exclusive deals, personalized offers, and amazing rewards** like never before.
       </p>
       <p>
-        But that’s not all. We’re introducing new ways to earn faster, exciting challenges, and perks tailored just for you. Your Reward+ journey is about to get even more rewarding.
+        But wait, there’s more! We’ve added new ways to **earn faster, complete fun challenges, and unlock premium perks**—just for you!
       </p>
       <p>
-        What are you waiting for? Dive into the app and discover what’s waiting for you—your next reward is just a tap away.
+        Your next big reward is only a tap away. Open the app now and see what’s waiting for you!  
       </p>
 
       <div class="cta-button-wrapper">
         <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
-          Redeem Your Rewards Now
+          Open the App & Redeem Now
         </a>
       </div>
     </div>
@@ -138,6 +138,7 @@ export const announcementMsg = (fullname) => {
   </div>
 </body>
 </html>
+
   `;
   return message;
 };
