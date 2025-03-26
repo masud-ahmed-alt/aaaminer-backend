@@ -12,7 +12,7 @@ export const scratchCardCron = () => {
   cron.schedule('0 */5 * * *', generateScratchCard, {
     timezone: "Asia/Kolkata",
   });
-};
+}; 
 
 
 

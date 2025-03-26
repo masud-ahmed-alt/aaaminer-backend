@@ -7,6 +7,60 @@ import { ErrorHandler } from '../utils/utility.js';
 import Carousel from "../models/Carousel.js";
 import TopTenUsers from '../models/TopTenUsers.js';
 
+
+const createTask = async () => {
+  try {
+    const taskNameTemplates = [
+      "Complete the level",
+      "Build your empire",
+      "Explore a new world",
+      "Collect power-ups",
+      "Access exclusive content",
+      "Finish the mission",
+      "Win the battle",
+      "Reach the next stage",
+      "Complete the challenge"
+    ];
+
+    const tasks = Array.from({ length: 10 }, () => {
+      const rewardPoints = Math.floor(Math.random() * 90) + 10;
+      const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
+      return {
+        taskName: `${randomTemplate}`,
+        rewardPoints,
+      };
+    });
+    await Task.insertMany(tasks);
+    console.log("New task generated");
+  } catch (error) {
+    console.log(`Failed to generate new tasks. Error: ${error}`);
+  }
+}
+
+const createScratchCard = async () => {
+  try {
+    const randomPoints = Array.from({ length: 3 }, () =>
+      Math.floor(Math.random() * 81)
+    )
+    const pointsArray = [0, ...randomPoints];
+    const shuffledPoints = pointsArray.sort(() => Math.random() - 0.5);
+
+
+    const scratchCards = shuffledPoints.map((points) => ({
+      points,
+      desc: points === 0
+        ? "OOPS! Better luck next time!"
+        : `🎉Congratulations, you have just won ${points} points!🎉`,
+    }));
+
+    await ScratchCard.insertMany(scratchCards);
+    console.log("New Scratch Cards generated.....");
+  } catch (error) {
+    console.log(`Failed to create scratch card. Error: ${error}`);
+  }
+
+}
+
 export const getRanking = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user;
@@ -48,85 +102,35 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
-
 export const generateDailyTasks = catchAsyncError(async () => {
-
-  try {
+  const task = await Task.find()
+  if (task.length > 0) {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
-      console.log("Task deleted");
+      console.log("Existing Task deleted")
+      await createTask()
     } else {
-      console.log("No tasks to delete");
+      console.log("No tasks to deleted");
     }
-  } catch (error) {
-    console.log("Error while deleting tasks: ", error.message || error);
   }
-
-  try {
-
-    const taskNameTemplates = [
-      "Complete the level",
-      "Build your empire",
-      "Explore a new world",
-      "Collect power-ups",
-      "Access exclusive content",
-      "Finish the mission",
-      "Win the battle",
-      "Reach the next stage",
-      "Complete the challenge"
-    ];
-
-    const tasks = Array.from({ length: 10 }, () => {
-      const rewardPoints = Math.floor(Math.random() * 90) + 10;
-      const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
-      return {
-        taskName: `${randomTemplate}`,
-        rewardPoints,
-      };
-    });
-
-    await Task.insertMany(tasks);
-    // const message = `🚨 New Task Alert! 🚨\n New tasks are available for you! Complete it on time to earn extra reward points and climb to the top of the leaderboard!`
-    // const imageUrl = "./src/telegram/tasks.jpg"
-    // sendTelegramMessage(message, imageUrl)
-    // console.log("Tasks created successfully");
-  } catch (error) {
-    console.log("Error while creating tasks: ", error.message || error);
+  else if (task.length === 0) {
+    console.log("No existing tasks found. Creating new tasks...");
+    await createTask()
   }
 });
 
 export const generateScratchCard = catchAsyncError(async () => {
-  try {
+  const scratchCards = await ScratchCard.find()
+  if (scratchCards.length > 0) {
     const deleteScratchCard = await ScratchCard.deleteMany({});
     if (deleteScratchCard.deletedCount > 0) {
       console.log("Existing Scratch Cards deleted");
+      await createScratchCard()
     } else {
       console.log("No Scratch Cards to delete");
     }
-
-    const randomPoints = Array.from({ length: 3 }, () =>
-      Math.floor(Math.random() * 81)
-    )
-
-    const pointsArray = [0, ...randomPoints];
-    const shuffledPoints = pointsArray.sort(() => Math.random() - 0.5);
-
-
-    const scratchCards = shuffledPoints.map((points) => ({
-      points,
-      desc: points === 0
-        ? "OOPS! Better luck next time!"
-        : `🎉Congratulations, you have just won ${points} points!🎉`,
-    }));
-
-    await ScratchCard.insertMany(scratchCards);
-    // const message = `🎉 New Scratch Cards Are Here! 🎉\n We've initiated new scratch cards—scratch now to earn more points and boost your rewards!`
-    // const imageUrl = "./src/telegram/scratchCard.jpg"
-    // sendTelegramMessage(message, imageUrl)
-    // console.log("New Scratch Cards generated successfully");
-  } catch (error) {
-    console.error("Error generating Scratch Cards: ", error.message || error);
+  } else if (scratchCards.length === 0) {
+    await createScratchCard()
   }
 });
 
