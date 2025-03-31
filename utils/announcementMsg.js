@@ -5,7 +5,7 @@ export const announcementMsg = (fullname) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Exciting Rewards Await!</title>
+  <title>Eid Mubarak - Special Rewards for You!</title>
   <style>
     body {
       margin: 0;
@@ -25,7 +25,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .email-header {
-      background: linear-gradient(135deg, #ff9800, #f44336);
+      background: linear-gradient(135deg, #008080, #006666);
       padding: 36px 24px;
       text-align: center;
       color: #ffffff;
@@ -40,7 +40,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .email-content h2 {
-      color: #d84315;
+      color: #008080;
       font-size: 22px;
       margin-bottom: 18px;
     }
@@ -52,7 +52,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .highlight {
-      color: #ff9800;
+      color: #008080;
       font-weight: 600;
     }
 
@@ -63,7 +63,7 @@ export const announcementMsg = (fullname) => {
 
     .cta-button {
       display: inline-block;
-      background-color: #ff9800;
+      background-color: #008080;
       color: #ffffff;
       text-decoration: none;
       padding: 14px 32px;
@@ -74,7 +74,7 @@ export const announcementMsg = (fullname) => {
     }
 
     .cta-button:hover {
-      background-color: #f57c00;
+      background-color: #006666;
     }
 
     .email-footer {
@@ -107,25 +107,25 @@ export const announcementMsg = (fullname) => {
   <div class="email-container">
     <!-- Header -->
     <div class="email-header">
-      🎉 Big News, ${fullname}! Your Next Reward is Waiting!
+      🌙 Eid Mubarak, ${fullname}! Special Surprises Await!
     </div>
 
     <!-- Content -->
     <div class="email-content">
-      <h2>🚀 Exclusive Rewards Just for You!</h2>
+      <h2>🎉 Celebrate Eid with Exclusive Rewards!</h2>
       <p>
-        Exciting updates just dropped in <span class="highlight">Reward+</span>! Now, you can turn your points into **exclusive deals, personalized offers, and amazing rewards** like never before.
+        May this Eid bring joy, peace, and countless blessings to you and your loved ones. To make this occasion even more special, <span class="highlight">Reward+</span> has prepared **exclusive gifts, personalized offers, and exciting rewards** just for you!
       </p>
       <p>
-        But wait, there’s more! We’ve added new ways to **earn faster, complete fun challenges, and unlock premium perks**—just for you!
+        Take part in our special **Eid Challenges** to earn more points and unlock premium perks. Don’t miss out on this limited-time celebration!
       </p>
       <p>
-        Your next big reward is only a tap away. Open the app now and see what’s waiting for you!  
+        Open the app now and claim your **Eid Bonus Rewards** before they’re gone!
       </p>
 
       <div class="cta-button-wrapper">
         <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
-          Open the App & Redeem Now
+          Claim Your Eid Rewards Now
         </a>
       </div>
     </div>
@@ -133,7 +133,7 @@ export const announcementMsg = (fullname) => {
     <!-- Footer -->
     <div class="email-footer">
       <p>You’re receiving this because you’re a valued member of the Reward+ community.</p>
-      <p>Update your app now to unlock the latest features and experiences!</p>
+      <p>Celebrate Eid with us and enjoy your exclusive gifts today!</p>
     </div>
   </div>
 </body>
