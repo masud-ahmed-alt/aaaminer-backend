@@ -5,7 +5,7 @@ export const announcementMsg = (fullname) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Eid Mubarak - Special Rewards for You!</title>
+  <title>Special Rewards Just for You!</title>
   <style>
     body {
       margin: 0;
@@ -107,25 +107,25 @@ export const announcementMsg = (fullname) => {
   <div class="email-container">
     <!-- Header -->
     <div class="email-header">
-      🌙 Eid Mubarak, ${fullname}! Special Surprises Await!
+      🎁 Exciting Rewards Await, ${fullname}!
     </div>
 
     <!-- Content -->
     <div class="email-content">
-      <h2>🎉 Celebrate Eid with Exclusive Rewards!</h2>
+      <h2>🎉 Unlock Exclusive Rewards Today!</h2>
       <p>
-        May this Eid bring joy, peace, and countless blessings to you and your loved ones. To make this occasion even more special, <span class="highlight">Reward+</span> has prepared **exclusive gifts, personalized offers, and exciting rewards** just for you!
+        We appreciate you being part of the <span class="highlight">Reward+</span> community! To show our gratitude, we’ve prepared **special gifts, personalized offers, and exciting rewards** just for you!
       </p>
       <p>
-        Take part in our special **Eid Challenges** to earn more points and unlock premium perks. Don’t miss out on this limited-time celebration!
+        Complete challenges, earn points, and unlock premium perks. Don’t miss out on this opportunity to maximize your benefits!
       </p>
       <p>
-        Open the app now and claim your **Eid Bonus Rewards** before they’re gone!
+        Open the app now and claim your **Bonus Rewards** before they expire!
       </p>
 
       <div class="cta-button-wrapper">
         <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
-          Claim Your Eid Rewards Now
+          Claim Your Rewards Now
         </a>
       </div>
     </div>
@@ -133,12 +133,11 @@ export const announcementMsg = (fullname) => {
     <!-- Footer -->
     <div class="email-footer">
       <p>You’re receiving this because you’re a valued member of the Reward+ community.</p>
-      <p>Celebrate Eid with us and enjoy your exclusive gifts today!</p>
+      <p>Unlock your exclusive rewards today!</p>
     </div>
   </div>
 </body>
 </html>
-
   `;
   return message;
 };
