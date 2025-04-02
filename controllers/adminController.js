@@ -13,6 +13,7 @@ import { ErrorHandler } from "../utils/utility.js";
 import TopTenUsers from '../models/TopTenUsers.js';
 import { banMailMsg } from '../utils/banMessage.js';
 import { unbanMailMsg } from '../utils/unbanMessage.js';
+import { compare } from 'bcrypt';
 
 
 
@@ -26,27 +27,43 @@ export const adminProfile = catchAsyncError(async (req, res, next) => {
 })
 
 export const adminLogin = catchAsyncError(async (req, res, next) => {
-    const { adminCode } = req.body;
-    if (!adminCode) return next(new ErrorHandler("Please add admin code", 400))
-    const admin = await Admin.findOne({ adminCode })
-
-    if (!admin) return next(new ErrorHandler("Unknown admin", 401))
-
+    const { adminCode, password } = req.body;
+    if (!adminCode) return next(new ErrorHandler("Please enter admin code", 400))
+    if (!password) return next(new ErrorHandler("Please enter password", 400))
+    const admin = await Admin.findOne({ adminCode }).select("+password")
+    if (!admin) return next(new ErrorHandler("Invalid admin code or password", 401))
+    const isMatch = await compare(password, admin.password)
+    if (!isMatch) return next(new ErrorHandler("Invalid admin code or password", 401))
     sendToken(res, admin, 200, `Welcome  ${admin.adminName}!`)
 })
 
 export const adminRegister = catchAsyncError(async (req, res, next) => {
-    const { adminCode, adminName } = req.body;
-    if (!adminCode || !adminName) return next(new ErrorHandler("Please add admin code and adminName", 400))
-    const admin = await Admin.create({ adminCode, adminName })
+    const { adminCode, adminName, password } = req.body;
+    if (!adminCode || !adminName ||!password) return next(new ErrorHandler("Please add admin code, adminName and password", 400))
+    const admin = await Admin.create({ adminCode, adminName, password })
 
     if (!admin) return next(new ErrorHandler("Something went wrong", 400))
 
     res.status(201).json({
         success: true,
-        message: "Admin created"
+        message: "Admin created",
     })
 })
+
+export const adminLogout = catchAsyncError(async (req, res, next) => {
+    res.status(200).cookie(process.env.COOKIE_NAME, "", {
+        expires: new Date(Date.now()),
+        httpOnly: true,
+        secure: true
+    }).json({
+        success: true,
+        message: "Log out successfully"
+    })
+    if (typeof window !== "undefined") {
+        localStorage.removeItem(process.env.COOKIE_NAME);
+    }
+});
+
 
 export const allUsers = catchAsyncError(async (req, res, next) => {
     const users = await User.find()

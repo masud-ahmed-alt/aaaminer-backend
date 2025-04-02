@@ -1,6 +1,6 @@
 import express from "express"
 import {
-    adminLogin, adminProfile, adminRegister, allUsers,
+    adminLogin, adminLogout, adminProfile, adminRegister, allUsers,
     createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
     getSuspectedUser, sendAnnouncementEmail,
     setTopTenUser,
@@ -17,7 +17,8 @@ const router = express.Router();
 
 // Login a user
 router.post('/login', adminLogin);
-// router.post('/register', adminRegister);
+router.post('/register', adminRegister);
+router.get('/logout',isAdmin, adminLogout);
 
 router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
