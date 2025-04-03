@@ -59,6 +59,7 @@ export const adminLogout = catchAsyncError(async (req, res, next) => {
         success: true,
         message: "Log out successfully"
     })
+    res.clearCookie(process.env.COOKIE_NAME)
     if (typeof window !== "undefined") {
         localStorage.removeItem(process.env.COOKIE_NAME);
     }
