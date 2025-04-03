@@ -51,19 +51,34 @@ export const adminRegister = catchAsyncError(async (req, res, next) => {
 })
 
 export const adminLogout = catchAsyncError(async (req, res, next) => {
-    res.status(200).cookie(process.env.COOKIE_NAME, "", {
-        expires: new Date(Date.now()),
-        httpOnly: true,
-        secure: true
-    }).json({
-        success: true,
-        message: "Log out successfully"
-    })
-    res.clearCookie(process.env.COOKIE_NAME)
-    if (typeof window !== "undefined") {
-        localStorage.removeItem(process.env.COOKIE_NAME);
+    try {
+        // Destroy session if it exists
+        if (req.session) {
+            req.session.destroy((err) => {
+                if (err) {
+                    return next(err); // Pass the error to the error handler
+                }
+            });
+        }
+
+        // Clear authentication cookie
+        res.clearCookie(process.env.COOKIE_NAME, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None', // Ensure compatibility with cross-site cookies
+        });
+
+        // Send logout response
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        });
+
+    } catch (error) {
+        return next(error);
     }
 });
+
 
 
 export const allUsers = catchAsyncError(async (req, res, next) => {
