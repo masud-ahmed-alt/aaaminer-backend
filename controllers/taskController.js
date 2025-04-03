@@ -88,7 +88,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
     } else {
       users = await User.find({ isBanned: false })
         .select("username walletPoints -_id")
-        .sort({ walletPoints: -1 })
+        .sort({ walletPoints: -1 }).limit(100)
         .lean();
     }
 
