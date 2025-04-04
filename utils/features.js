@@ -94,50 +94,62 @@ const storage = (type) => multer.diskStorage({
 });
 
 const sendTelegramMessage = (message, imagePath) => {
-    const token = process.env.TEL_BOT_TOKEN
-    const chatId = process.env.CHAT_ID
-    const bot = new TelegramBot(token, { polling: false })
+    const token = process.env.TEL_BOT_TOKEN;
+    const chatId = process.env.CHAT_ID;
+    const bot = new TelegramBot(token, { polling: false });
 
-    // Check if the file exists
-    if (!fs.existsSync(imagePath)) {
-        console.error('Image file not found:', imagePath)
-        return;
+    if (imagePath) {
+        // Check if the file exists
+        if (!fs.existsSync(imagePath)) {
+            console.error('Image file not found:', imagePath);
+            return;
+        }
+
+        // Send the image with a caption
+        bot.sendPhoto(chatId, fs.createReadStream(imagePath), { caption: message })
+            .then(() => {
+                console.log('Telegram image message sent successfully');
+            })
+            .catch((error) => {
+                console.error('Error sending telegram image message:', error);
+            });
+    } else {
+        // Send a text message only
+        bot.sendMessage(chatId, message, { parse_mode: "HTML" })
+            .then(() => {
+                console.log('Telegram text message sent successfully');
+            })
+            .catch((error) => {
+                console.error('Error sending telegram text message:', error);
+            });
     }
+};
 
-    // Send the image with a caption
-    bot.sendPhoto(chatId, fs.createReadStream(imagePath), { caption: message })
-        .then(() => {
-            console.log('Telegram message sent successfully')
-        })
-        .catch((error) => {
-            console.error('Error telegram sending message:', error);
-        })
-}
 
-const findSuspectedUser = async ()=>{
+const findSuspectedUser = async () => {
     const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
 
-    const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/; 
-    const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/; 
-    const unknownDomainRegex = new RegExp(`@(?!(${knownDomains.join('|')})$).*`, 'i'); 
+    const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/;
+    const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/;
+    const unknownDomainRegex = new RegExp(`@(?!(${knownDomains.join('|')})$).*`, 'i');
 
-  
-    const nameWithExtraDotsRegex = /(\.{2,})/; 
-    const nameTooManySegmentsRegex = /(\.[^.]+){2,}/; 
-    const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/; 
 
-  
+    const nameWithExtraDotsRegex = /(\.{2,})/;
+    const nameTooManySegmentsRegex = /(\.[^.]+){2,}/;
+    const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/;
+
+
     const suspectedUsers = await User.find({
         $or: [
-          
-            { email: { $regex: extraDotsRegex } },
-            { email: { $regex: tooManySegmentsRegex } }, 
-            { email: { $regex: unknownDomainRegex } }, 
 
-       
-            { name: { $regex: nameWithExtraDotsRegex } }, 
+            { email: { $regex: extraDotsRegex } },
+            { email: { $regex: tooManySegmentsRegex } },
+            { email: { $regex: unknownDomainRegex } },
+
+
+            { name: { $regex: nameWithExtraDotsRegex } },
             { name: { $regex: nameTooManySegmentsRegex } },
-            { name: { $regex: nameNonAlphanumericRegex } }, 
+            { name: { $regex: nameNonAlphanumericRegex } },
         ]
     });
 
@@ -162,8 +174,8 @@ const generateUsername = async () => {
     return username;
 }
 const extractName = async (email) => {
-    if (!email || typeof email !== "string") return null; 
-    return email.split("@")[0]; 
+    if (!email || typeof email !== "string") return null;
+    return email.split("@")[0];
 }
 
 

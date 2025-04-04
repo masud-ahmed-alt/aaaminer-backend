@@ -8,7 +8,7 @@ import HomeNotification from "../models/HomeNotification.js";
 import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
-import { findSuspectedUser, sendEmail, sendToken, storage } from "../utils/features.js";
+import { findSuspectedUser, sendEmail, sendTelegramMessage, sendToken, storage } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import TopTenUsers from '../models/TopTenUsers.js';
 import { banMailMsg } from '../utils/banMessage.js';
@@ -39,7 +39,7 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
 
 export const adminRegister = catchAsyncError(async (req, res, next) => {
     const { adminCode, adminName, password } = req.body;
-    if (!adminCode || !adminName ||!password) return next(new ErrorHandler("Please add admin code, adminName and password", 400))
+    if (!adminCode || !adminName || !password) return next(new ErrorHandler("Please add admin code, adminName and password", 400))
     const admin = await Admin.create({ adminCode, adminName, password })
 
     if (!admin) return next(new ErrorHandler("Something went wrong", 400))
@@ -506,7 +506,7 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
         isBanned: false,
         isverified: true,
     })
-        .select("_id")
+        .select("_id username")
         .sort({ walletPoints: -1 })
         .limit(10);
 
@@ -514,7 +514,19 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
         const topTenUsersData = topTenUsers.map(user => ({ user: user._id }));
         await TopTenUsers.insertMany(topTenUsersData);
     }
+    // Build Telegram message
+    let message =
+        "🎉 <b>Big Congratulations to Our Top Performers!</b>\n\n" +
+        "🔥 The <b>Top 10 Users</b> of the week have been officially announced!\n\n" +
+        "👏 These outstanding individuals have earned their spot through dedication and high wallet points.\n\n" +
+        "Here’s the leaderboard:\n\n";
 
+
+    topTenUsers.forEach((user, index) => {
+        message += `${index + 1}. ${(user.username).toUpperCase()} \n`;
+    });
+
+    sendTelegramMessage(message)
     res.status(200).json({
         success: true,
         message: "Top 10 users created!"
@@ -543,5 +555,6 @@ const topUser = async () => {
 };
 
 
-// topUser()
+
+topUser()
 // bannedUsers()
