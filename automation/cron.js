@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { generateDailyTasks, generateScratchCard } from '../controllers/taskController.js';
+import { usersEnquiry } from '../controllers/adminController.js';
 
 
 export const taskCron = () => {
@@ -13,6 +14,12 @@ export const scratchCardCron = () => {
     timezone: "Asia/Kolkata",
   });
 }; 
+
+export const usersValidation = () => {
+  cron.schedule('0 0 * * *', usersEnquiry, {
+    timezone: "Asia/Kolkata",
+  });
+};
 
 
 

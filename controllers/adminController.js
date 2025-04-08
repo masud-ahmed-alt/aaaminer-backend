@@ -562,7 +562,7 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
 });
 
 
-const bannedUsers = async () => {
+export const usersEnquiry = async () => {
     const users = await findSuspectedUser();
 
     for (const user of users) {
@@ -571,18 +571,3 @@ const bannedUsers = async () => {
         console.log(`${user.name} ban status ${user.isBanned} updated`);
     }
 }
-
-const topUser = async () => {
-    const users = await TopTenUsers.find()
-        .populate("user", "username")
-        .select("user");
-
-    users.forEach(element => {
-        console.log(element.user.username);
-    });
-};
-
-
-
-// topUser()
-// bannedUsers()
