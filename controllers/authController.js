@@ -384,7 +384,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
 
-  // // Check if user already requested withdrawal in the current month
+  // Check if user already requested withdrawal in the current month
   const startOfMonth = moment().startOf("month").toDate();
   const endOfMonth = moment().endOf("month").toDate();
 

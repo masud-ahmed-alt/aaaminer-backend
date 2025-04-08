@@ -1,4 +1,4 @@
-export const announcementMsg = (fullname) => {
+export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
   const message = `
 <!DOCTYPE html>
 <html lang="en">
@@ -107,25 +107,25 @@ export const announcementMsg = (fullname) => {
   <div class="email-container">
     <!-- Header -->
     <div class="email-header">
-      🎁 Exciting Rewards Await, ${fullname}!
+      ${header}, ${fullname}!
     </div>
 
     <!-- Content -->
     <div class="email-content">
-      <h2>🎉 Unlock Exclusive Rewards Today!</h2>
-      <p>
-        We appreciate you being part of the <span class="highlight">Reward+</span> community! To show our gratitude, we’ve prepared **special gifts, personalized offers, and exciting rewards** just for you!
+      <h2>${h2}</h2>
+       <p>
+       ${p1}
       </p>
       <p>
-        Complete challenges, earn points, and unlock premium perks. Don’t miss out on this opportunity to maximize your benefits!
+       ${p2}
       </p>
       <p>
-        Open the app now and claim your **Bonus Rewards** before they expire!
+       ${p3}
       </p>
-
+     
       <div class="cta-button-wrapper">
         <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
-          Claim Your Rewards Now
+          ${btn_text}
         </a>
       </div>
     </div>

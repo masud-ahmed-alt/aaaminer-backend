@@ -134,20 +134,47 @@ export const setupSocketEvents = (io) => {
 };
 
 export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
-    // const { subject } = req.body
-    // if (!subject)
-    //     return next(new ErrorHandler("Please provide subject of the mail", 400))
-    // Fetch verified users
-    const users = await User.find({ isverified: true }).select("name email");
+    const { subject, header, h2, p1, p2, p3, btn_text } = req.body;
+    const { userType, limit } = req.query;
 
-    if (!users.length) return next(new ErrorHandler("No verified users found!", 404));
+    // Validate inputs
+    if (!userType)
+        return next(new ErrorHandler("Please provide userType", 400));
+    if (!limit)
+        return next(new ErrorHandler("Please specify sending limit", 400));
+
+    if (!["newest", "oldest"].includes(userType))
+        return next(new ErrorHandler("Invalid userType: must be 'newest', or 'oldest'", 400));
+
+    if (!subject || !header || !h2 || !p1 || !p2 || !p3 || !btn_text)
+        return next(new ErrorHandler("Please provide all required fields: subject, header, h2, p1, p2, p3, btn_text", 400));
+
+    let usersQuery = User.find({ isverified: true }).select("name email").limit(limit).lean();
+
+    switch (userType) {
+        case "newest":
+            usersQuery = usersQuery.sort("-createdAt");
+            break;
+        case "oldest":
+            usersQuery = usersQuery.sort("createdAt");
+            break;
+
+    }
+
+    const users = await usersQuery;
+
+    if (!users.length)
+        return next(new ErrorHandler("No users found!", 404));
 
     try {
-        // Send emails in parallel using Promise.all
         await Promise.all(
-            users.map(async (user) => {
-                await sendEmail(user.email, `Dear ${user.name} ! Your Reward+ Points Just Got More Powerful 🔥`, announcementMsg(user.name));
-            })
+            users.map(user =>
+                sendEmail(
+                    user.email,
+                    subject,
+                    announcementMsg(user.name, header, h2, p1, p2, p3, btn_text)
+                )
+            )
         );
 
         return res.status(200).json({
@@ -159,6 +186,7 @@ export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Failed to send announcement emails.", 500));
     }
 });
+
 
 export const createHomeNotification = catchAsyncError(async (req, res, next) => {
     const { title } = req.body;
