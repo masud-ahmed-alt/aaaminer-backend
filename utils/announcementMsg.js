@@ -1,4 +1,4 @@
-export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
+export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
   const message = `
 <!DOCTYPE html>
 <html lang="en">
@@ -25,7 +25,7 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
     }
 
     .email-header {
-      background: linear-gradient(135deg, #008080, #006666);
+      background: linear-gradient(135deg, #2e003e, #8e2de2);
       padding: 36px 24px;
       text-align: center;
       color: #ffffff;
@@ -40,7 +40,7 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
     }
 
     .email-content h2 {
-      color: #008080;
+      color: #6a0dad;
       font-size: 22px;
       margin-bottom: 18px;
     }
@@ -52,7 +52,7 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
     }
 
     .highlight {
-      color: #008080;
+      color: #8e2de2;
       font-weight: 600;
     }
 
@@ -63,7 +63,7 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
 
     .cta-button {
       display: inline-block;
-      background-color: #008080;
+      background-color: #6a0dad;
       color: #ffffff;
       text-decoration: none;
       padding: 14px 32px;
@@ -74,7 +74,7 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
     }
 
     .cta-button:hover {
-      background-color: #006666;
+      background-color: #8e2de2;
     }
 
     .email-footer {
@@ -113,16 +113,10 @@ export const announcementMsg = (fullname, header, h2, p1,p2, p3, btn_text) => {
     <!-- Content -->
     <div class="email-content">
       <h2>${h2}</h2>
-       <p>
-       ${p1}
-      </p>
-      <p>
-       ${p2}
-      </p>
-      <p>
-       ${p3}
-      </p>
-     
+      <p>${p1}</p>
+      <p>${p2}</p>
+      <p>${p3}</p>
+
       <div class="cta-button-wrapper">
         <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
           ${btn_text}
