@@ -345,15 +345,16 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
     return next(new ErrorHandler("You are not eligible to redeem", 401));
   }
 
-  const topUsersCount = await TopTenUsers.find().countDocuments()
-  if (topUsersCount < 1)
-    return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
+  // const topUsersCount = await TopTenUsers.find().countDocuments()
+  // if (topUsersCount < 1)
+  //   return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
 
-  // Step 1: Check if the user is in the top 10
-  const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
-  if (!isInTopTen) {
-    return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
-  }
+  // // Step 1: Check if the user is in the top 10
+  // const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
+  // if (!isInTopTen) {
+  //   return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
+  // }
+  
   res.status(200).json({
     success: true,
     isEligible: true,
@@ -385,16 +386,16 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Insufficient points", 400));
 
   // Check if user already requested withdrawal in the current month
-  const startOfMonth = moment().startOf("month").toDate();
-  const endOfMonth = moment().endOf("month").toDate();
+  // const startOfMonth = moment().startOf("month").toDate();
+  // const endOfMonth = moment().endOf("month").toDate();
 
-  const existingRequest = await Withdraw.findOne({
-    user,
-    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-  });
+  // const existingRequest = await Withdraw.findOne({
+  //   user,
+  //   createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+  // });
 
-  if (existingRequest)
-    return next(new ErrorHandler("Due to some limitation, only one request can be made per month.", 400));
+  // if (existingRequest)
+  //   return next(new ErrorHandler("Due to some limitation, only one request can be made per month.", 400));
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;

@@ -562,7 +562,7 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
 });
 
 
-export const usersEnquiry = async () => {
+export const scanUser = async () => {
     const users = await findSuspectedUser();
 
     for (const user of users) {

@@ -6,7 +6,7 @@ import http from 'http';
 import path, { dirname } from 'path';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
-import { scratchCardCron, taskCron } from './automation/cron.js';
+import { scratchCardCron, taskCron, usersScanning } from './automation/cron.js';
 import connectDB from './config/db.js';
 import { setupSocketEvents } from './controllers/adminController.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -27,8 +27,10 @@ dotenv.config({ path: ".env" });
 
 const dbURI = process.env.MONGO_URI;
 connectDB(dbURI);
-taskCron();
-scratchCardCron();
+
+taskCron()
+scratchCardCron()
+usersScanning()
 
 app.use(express.json());
 app.use(cookieParser());
