@@ -125,37 +125,39 @@ export const profile = catchAsyncError(async (req, res, next) => {
 
 // get myvouchers and withdraw request history
 export const myVouchers = catchAsyncError(async (req, res, next) => {
-  try {
-    const userId = req.user;
-    const { status } = req.query;
+  const userId = req.user;
+  const { status } = req.query;
 
-    if (!status) {
-      return next(new ErrorHandler("Please select status", 400));
-    }
-
-    const validStatuses = ["success", "processing"];
-    if (!validStatuses.includes(status)) {
-      return next(new ErrorHandler("Invalid status", 400));
-    }
-
-    const selectFields = status === "success"
-      ? "name voucher points createdAt updatedAt"
-      : "name points createdAt updatedAt";
-
-    const sortField = status === "success" ? "-updatedAt" : "-createdAt";
-
-    const vouchers = await Withdraw.find({ user: userId, status })
-      .select(selectFields)
-      .sort(sortField);
-
-    return res.status(200).json({
-      success: true,
-      vouchers,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+  if (!status) {
+    return next(new ErrorHandler("Please select status", 400));
   }
+
+  const validStatuses = ["all", "success", "processing"];
+  if (!validStatuses.includes(status)) {
+    return next(new ErrorHandler("Invalid status", 400));
+  }
+
+  let filter = { user: userId };
+  if (status !== "all") {
+    filter.status = status;
+  }
+
+  const selectFields = status === "success"
+    ? "name voucher points status createdAt updatedAt"
+    : "name points status createdAt updatedAt";
+
+  const sortField = status === "success" ? "-updatedAt" : "-createdAt";
+
+  const vouchers = await Withdraw.find(filter)
+    .select(selectFields)
+    .sort(sortField);
+
+  return res.status(200).json({
+    success: true,
+    vouchers,
+  });
 });
+
 
 
 // send OTP for email verification
