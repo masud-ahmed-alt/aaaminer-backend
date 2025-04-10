@@ -125,29 +125,32 @@ export const profile = catchAsyncError(async (req, res, next) => {
 
 // get myvouchers and withdraw request history
 export const myVouchers = catchAsyncError(async (req, res, next) => {
-  const userId = req.user;
+  const userId = req.user?._id || req.user;
   const { status } = req.query;
 
   if (!status) {
     return next(new ErrorHandler("Please select status", 400));
   }
 
-  const validStatuses = ["all", "success", "processing"];
+  const validStatuses = ["all", "success", "processing", "rejected"];
   if (!validStatuses.includes(status)) {
     return next(new ErrorHandler("Invalid status", 400));
   }
 
+  // Build filter
   let filter = { user: userId };
   if (status !== "all") {
     filter.status = status;
   }
 
+  // Field selection and sorting
   const selectFields = status === "success"
     ? "name voucher points status createdAt updatedAt"
     : "name points status createdAt updatedAt";
 
   const sortField = status === "success" ? "-updatedAt" : "-createdAt";
 
+  // Fetch vouchers
   const vouchers = await Withdraw.find(filter)
     .select(selectFields)
     .sort(sortField);
@@ -356,7 +359,7 @@ export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => 
   // if (!isInTopTen) {
   //   return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
   // }
-  
+
   res.status(200).json({
     success: true,
     isEligible: true,
