@@ -143,8 +143,8 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
     filter.status = status;
   }
 
-  // Field selection and sorting
-  const selectFields = status === "success"
+  // ✅ Updated field selection to include `voucher` for "all" and "success"
+  const selectFields = ["success", "all"].includes(status)
     ? "name voucher points status createdAt updatedAt"
     : "name points status createdAt updatedAt";
 
@@ -160,6 +160,7 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
     vouchers,
   });
 });
+
 
 
 
