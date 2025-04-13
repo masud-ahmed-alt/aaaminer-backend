@@ -36,6 +36,11 @@ const sendEmail = async (email, subject, htmlContent, next) => {
             user: process.env.SMTP_MAIL,
             pass: process.env.SMTP_PASSWORD,
         },
+        dkim: {
+            domainName: process.env.DOMAIN, 
+            keySelector: process.env.KEY_SELECTOR,      
+            privateKey: process.env.DKIM_PRIVATE_KEY,
+        },
     });
 
     const mailOptions = {
@@ -48,10 +53,11 @@ const sendEmail = async (email, subject, htmlContent, next) => {
     try {
         await transporter.sendMail(mailOptions);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return new Error('Failed to send email');
     }
 };
+
 
 const getAvailableTasks = async (userId) => {
     return await Task.find({ completedBy: { $ne: userId } }).select("-completedBy").sort({ "createdAt": +1 })

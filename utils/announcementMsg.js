@@ -5,55 +5,50 @@ export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Special Rewards Just for You!</title>
+  <title>Important Update from Reward+</title>
   <style>
     body {
       margin: 0;
       padding: 0;
+      background-color: #f0f4f8;
       font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f6fa;
-      color: #333;
+      color: #1e293b;
     }
 
     .email-container {
-      max-width: 600px;
+      max-width: 640px;
       margin: 40px auto;
       background-color: #ffffff;
-      border-radius: 14px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
     }
 
     .email-header {
-      background: linear-gradient(135deg, #2e003e, #8e2de2);
-      padding: 36px 24px;
+      background: linear-gradient(135deg, #14b8a6, #2563eb);
+      padding: 40px 30px;
       text-align: center;
       color: #ffffff;
-      font-size: 26px;
-      font-weight: bold;
-      line-height: 1.4;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     .email-content {
-      padding: 32px 26px;
-      line-height: 1.75;
+      padding: 36px 30px;
     }
 
     .email-content h2 {
-      color: #6a0dad;
+      color: #0f172a;
       font-size: 22px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .email-content p {
       font-size: 16px;
-      margin-bottom: 20px;
-      color: #555;
-    }
-
-    .highlight {
-      color: #8e2de2;
-      font-weight: 600;
+      color: #334155;
+      margin-bottom: 18px;
+      line-height: 1.6;
     }
 
     .cta-button-wrapper {
@@ -63,27 +58,28 @@ export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
 
     .cta-button {
       display: inline-block;
-      background-color: #6a0dad;
+      background-color: #2563eb;
       color: #ffffff;
       text-decoration: none;
-      padding: 14px 32px;
-      border-radius: 10px;
+      padding: 14px 36px;
+      border-radius: 12px;
       font-size: 17px;
       font-weight: 600;
       transition: background 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
     .cta-button:hover {
-      background-color: #8e2de2;
+      background-color: #1d4ed8;
     }
 
     .email-footer {
-      background-color: #f0f0f0;
-      padding: 24px;
+      background-color: #f8fafc;
+      padding: 24px 20px;
       text-align: center;
       font-size: 14px;
-      color: #777;
-      border-top: 1px solid #e0e0e0;
+      color: #64748b;
+      border-top: 1px solid #e2e8f0;
     }
 
     .email-footer p {
@@ -92,12 +88,17 @@ export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
 
     @media (max-width: 600px) {
       .email-content, .email-header, .email-footer {
-        padding-left: 18px;
-        padding-right: 18px;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .email-header {
+        font-size: 24px;
+        padding: 32px 20px;
       }
 
       .cta-button {
-        padding: 12px 24px;
+        padding: 12px 28px;
         font-size: 16px;
       }
     }
