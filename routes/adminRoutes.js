@@ -34,7 +34,7 @@ router.post("/withdraw-actions/:id", isAdmin, withdrawRequestActions)
 router.get("/user-growth", isAdmin, userGrowData)
 
 
-router.post("/send-mail", isAdmin, sendAnnouncement)
+router.put("/send-mail", isAdmin, sendAnnouncement)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
 
 
