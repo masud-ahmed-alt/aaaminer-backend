@@ -28,7 +28,7 @@ dotenv.config({ path: ".env" });
 //     credentials: true
 // }));
 
-const allowedOrigins = [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2, null];
+const allowedOrigins = [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2];
 
 app.use(cors({
     origin: function (origin, callback) {
