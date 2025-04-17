@@ -21,8 +21,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-
 dotenv.config({ path: ".env" });
+
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://rewardplus-admin-dashboard.pages.dev', null],
+    credentials: true
+}));
 
 
 const dbURI = process.env.MONGO_URI;
@@ -36,14 +40,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.set('trust proxy', true);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-
-
-app.use(cors({
-    origin: ['http://localhost:5173', 'https://rewardplus-admin-dashboard.pages.dev', null],
-    credentials: true
-}));
-
 
 
 const server = http.createServer(app);
