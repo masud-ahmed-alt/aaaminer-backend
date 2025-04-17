@@ -24,7 +24,7 @@ const app = express();
 dotenv.config({ path: ".env" });
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://rewardplus-admin-dashboard.pages.dev', null],
+    origin: [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2, null],
     credentials: true
 }));
 
