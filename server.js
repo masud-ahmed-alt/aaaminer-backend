@@ -23,25 +23,27 @@ const __dirname = dirname(__filename);
 const app = express();
 dotenv.config({ path: ".env" });
 
-// app.use(cors({
-//     origin: [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2, null],
-//     credentials: true
-// }));
-
-const allowedOrigins = [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2];
+const allowedOrigins = [process.env.FRONTEND_URL1, process.env.FRONTEND_URL2, null];
 
 app.use(cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-  }));
+    origin:allowedOrigins,
+    credentials: true
+}));
+
+
+
+// app.use(cors({
+//     origin: function (origin, callback) {
+//       // Allow requests with no origin (like mobile apps or curl)
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       } else {
+//         return callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     credentials: true,
+//   }));
 
 
 const dbURI = process.env.MONGO_URI;
