@@ -133,7 +133,7 @@ export const setupSocketEvents = (io) => {
     });
 };
 
-export const sendAnnouncementEmail = catchAsyncError(async (req, res, next) => {
+export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
     const { subject, header, h2, p1, p2, p3, btn_text } = req.body;
     const { userType, limit } = req.query;
 

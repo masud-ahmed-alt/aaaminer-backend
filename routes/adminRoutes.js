@@ -1,15 +1,17 @@
-import express from "express"
+import express from "express";
 import {
     adminLogin, adminLogout, adminProfile, adminRegister, allUsers,
     createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
-    getSuspectedUser, sendAnnouncementEmail,
+    getSuspectedUser,
+    sendAnnouncement,
     setTopTenUser,
     uploadCarousalImage,
     userBanActions,
     userGrowData, withdrawHistory,
     withdrawRequestActions
 } from "../controllers/adminController.js";
-import { isAdmin } from "../middlewares/authMiddleware.js"
+import { isAdmin } from "../middlewares/authMiddleware.js";
+
 
 
 
@@ -32,7 +34,7 @@ router.post("/withdraw-actions/:id", isAdmin, withdrawRequestActions)
 router.get("/user-growth", isAdmin, userGrowData)
 
 
-router.post("/send-announcement-mail", isAdmin, sendAnnouncementEmail)
+router.post("/send-mail", isAdmin, sendAnnouncement)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
 
 
