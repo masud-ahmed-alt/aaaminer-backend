@@ -134,7 +134,7 @@ export const setupSocketEvents = (io) => {
 };
 
 export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
-    const { subject, header, h2, p1, p2, p3, btn_text } = req.body;
+    const { subject, header, h2, p1, p2, p3, btn_text, btn_url } = req.body;
     const { userType, limit } = req.query;
 
     // Validate inputs
@@ -146,8 +146,8 @@ export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
     if (!["newest", "oldest"].includes(userType))
         return next(new ErrorHandler("Invalid userType: must be 'newest', or 'oldest'", 400));
 
-    if (!subject || !header || !h2 || !p1 || !p2 || !p3 || !btn_text)
-        return next(new ErrorHandler("Please provide all required fields: subject, header, h2, p1, p2, p3, btn_text", 400));
+    if (!subject || !header || !h2 || !p1 || !p2 || !p3 || !btn_text || !btn_url)
+        return next(new ErrorHandler("Please provide all required fields: subject, header, h2, p1, p2, p3, btn_text, btn_url", 400));
 
     let usersQuery = User.find({ isverified: true }).select("name email").limit(limit).lean();
 
@@ -172,7 +172,7 @@ export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
                 sendEmail(
                     user.email,
                     subject,
-                    announcementMsg(user.name, header, h2, p1, p2, p3, btn_text)
+                    announcementMsg(user.name, header, h2, p1, p2, p3, btn_text,btn_url)
                 )
             )
         );

@@ -1,4 +1,4 @@
-export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
+export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text, btn_url) => {
   const message = `
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +119,7 @@ export const announcementMsg = (fullname, header, h2, p1, p2, p3, btn_text) => {
       <p>${p3}</p>
 
       <div class="cta-button-wrapper">
-        <a href="https://play.google.com/store/apps/details?id=com.nexumbyte.rewardplus" class="cta-button">
+        <a href="${btn_url}" class="cta-button">
           ${btn_text}
         </a>
       </div>
