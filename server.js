@@ -23,7 +23,13 @@ const __dirname = dirname(__filename);
 const app = express();
 dotenv.config({ path: ".env" });
 
-const allowedOrigins = ["http://localhost:5173", process.env.FRONTEND_URL1, process.env.FRONTEND_URL2, null];
+const allowedOrigins = [
+    process.env.LOCALHOST,
+    process.env.FRONTEND_URL1,
+    process.env.FRONTEND_URL2,
+    null,
+];
+
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
