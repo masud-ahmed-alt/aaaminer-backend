@@ -73,7 +73,7 @@ const generateOTP = () => {
 
 const setAndSendOTP = async (user, subject) => {
     const otp = generateOTP()
-    const message = getOTPMessage(user.name, otp)
+    const message = getOTPMessage(subject,user.name, otp)
     user.emailOTP = otp
     user.otpExpiry = Date.now() + 15 * 60 * 1000;
     await user.save();

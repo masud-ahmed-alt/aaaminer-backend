@@ -170,7 +170,7 @@ export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
   const userid = req.user
   const user = await User.findById(userid)
 
-  setAndSendOTP(user, "Email Verification !")
+  setAndSendOTP(user, "Profile Verification !")
 
   res.status(200).json({
     success: true,
@@ -219,7 +219,7 @@ export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email })
   if (!user) return next(new ErrorHandler("Email not found !", 404))
-  setAndSendOTP(user, "OTP for Password Recovery Reward+!")
+  setAndSendOTP(user, "OTP for Password Recovery!")
   res.status(200).json({
     success: true,
     message: `OTP send to ${email}`
