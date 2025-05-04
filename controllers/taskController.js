@@ -23,13 +23,14 @@ const createTask = async () => {
     ];
 
     const tasks = Array.from({ length: 10 }, () => {
-      const rewardPoints = Math.floor(Math.random() * 90) + 10;
+      const rewardPoints = Math.floor(Math.random() * 31) + 20;
       const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
       return {
         taskName: `${randomTemplate}`,
         rewardPoints,
       };
     });
+    
     await Task.insertMany(tasks);
     console.log("New task generated");
   } catch (error) {
