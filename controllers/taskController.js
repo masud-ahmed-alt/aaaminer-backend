@@ -2,7 +2,7 @@ import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import ScratchCard from '../models/ScratchCard.js';
 import Task from '../models/Task.js';
 import User from '../models/User.js';
-import { getAvailableScratchCard, getAvailableTasks, sendTelegramMessage } from '../utils/features.js';
+import { getActivityLog, getAvailableScratchCard, getAvailableTasks, sendTelegramMessage } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 import Carousel from "../models/Carousel.js";
 import TopTenUsers from '../models/TopTenUsers.js';
@@ -30,7 +30,7 @@ const createTask = async () => {
         rewardPoints,
       };
     });
-    
+
     await Task.insertMany(tasks);
     console.log("New task generated");
   } catch (error) {
@@ -190,13 +190,14 @@ export const completeTask = catchAsyncError(async (req, res, next) => {
 
     await user.save();
     await task.save();
+    getActivityLog(user.name, `completed task, id: ${task.id}`)
 
     res.status(200).json({
       success: true,
       message: "Task completed successfully"
     });
   } catch (error) {
-    console.error("Error completing task:", error);
+
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
 })
@@ -228,7 +229,7 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
 
     await user.save();
     await scratchCard.save();
-
+    getActivityLog(user.name, `completed scratch card, id: ${scratchCard.id}`)
     res.status(200).json({
       success: true,
       message: "Scratch Card completed successfully"

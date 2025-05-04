@@ -5,7 +5,7 @@ import { catchAsyncError } from '../middlewares/errorMiddleware.js';
 import HomeNotification from '../models/HomeNotification.js';
 import User from '../models/User.js';
 import Withdraw from '../models/Withdraw.js';
-import { extractName, generateUsername, sendToken, setAndSendOTP } from '../utils/features.js';
+import { extractName, generateUsername, getActivityLog, sendToken, setAndSendOTP } from '../utils/features.js';
 import { ErrorHandler } from '../utils/utility.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
@@ -81,7 +81,7 @@ export const register = catchAsyncError(async (req, res, next) => {
       success: true,
       users: userCount,
     });
-
+    getActivityLog(user.name, "new profile created")
     // Send response with token
     sendToken(res, user, 201, `Welcome`);
   } catch (error) {
@@ -100,7 +100,7 @@ export const login = catchAsyncError(async (req, res, next) => {
 
   const isMatch = await compare(password, user.password)
   if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401))
-
+  getActivityLog(user.name, "Logged in")
   sendToken(res, user, 200, `Welcome  ${user.name}!`)
 })
 
@@ -114,7 +114,7 @@ export const profile = catchAsyncError(async (req, res, next) => {
     ...profileUser.toObject(),
     referredCount: referred
   }
-
+  getActivityLog(profile.name, "access profile")
   res.status(200).json({
     success: true,
     profile
@@ -158,8 +158,6 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
     vouchers,
   });
 });
-
-
 
 
 // send OTP for email verification
@@ -287,6 +285,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   if (phone) user.phone = phone.trim();
 
   await user.save();
+  getActivityLog(user.name, "profile updated")
 
   res.status(200).json({
     success: true,
@@ -389,17 +388,6 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
 
-  // Check if user already requested withdrawal in the current month
-  // const startOfMonth = moment().startOf("month").toDate();
-  // const endOfMonth = moment().endOf("month").toDate();
-
-  // const existingRequest = await Withdraw.findOne({
-  //   user,
-  //   createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-  // });
-
-  // if (existingRequest)
-  //   return next(new ErrorHandler("Due to some limitation, only one request can be made per month.", 400));
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;
@@ -413,6 +401,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 
   await userData.save();
+  getActivityLog(userData.name, `redeem requested ${wallet} pts`)
 
   res.status(201).json({
     success: true,

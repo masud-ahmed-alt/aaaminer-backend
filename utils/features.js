@@ -8,6 +8,7 @@ import Task from "../models/Task.js";
 import { getOTPMessage } from "./otpMessage.js";
 import User from '../models/User.js';
 
+
 const cookieOptions = {
     maxAge: 15 * 24 * 60 * 60 * 100,
     sameSite: "none",
@@ -184,6 +185,9 @@ const extractName = async (email) => {
     return email.split("@")[0];
 }
 
+const getActivityLog = async(user, message)=>{
+    console.info(`${user} ${message}`)
+}
 
 
 export {
@@ -194,6 +198,7 @@ export {
     findSuspectedUser,
     sendToken, setAndSendOTP, storage,
     generateUsername,
-    extractName
+    extractName,
+    getActivityLog
 };
 

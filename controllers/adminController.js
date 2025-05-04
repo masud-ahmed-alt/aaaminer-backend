@@ -8,7 +8,7 @@ import HomeNotification from "../models/HomeNotification.js";
 import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
-import { findSuspectedUser, sendEmail, sendTelegramMessage, sendToken, storage } from "../utils/features.js";
+import { findSuspectedUser, getActivityLog, sendEmail, sendTelegramMessage, sendToken, storage } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import TopTenUsers from '../models/TopTenUsers.js';
 import { banMailMsg } from '../utils/banMessage.js';
@@ -34,6 +34,7 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
     if (!admin) return next(new ErrorHandler("Invalid admin code or password", 401))
     const isMatch = await compare(password, admin.password)
     if (!isMatch) return next(new ErrorHandler("Invalid admin code or password", 401))
+
     sendToken(res, admin, 200, `Welcome  ${admin.adminName}!`)
 })
 
