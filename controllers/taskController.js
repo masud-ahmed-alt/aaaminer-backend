@@ -34,7 +34,7 @@ const createTask = async () => {
     await Task.insertMany(tasks);
     console.log("New task generated");
   } catch (error) {
-    console.log(`Failed to generate new tasks. Error: ${error}`);
+    console.log(`Failed to generate new tasks.`);
   }
 }
 
@@ -57,7 +57,7 @@ const createScratchCard = async () => {
     await ScratchCard.insertMany(scratchCards);
     console.log("New Scratch Cards generated.....");
   } catch (error) {
-    console.log(`Failed to create scratch card. Error: ${error}`);
+    console.log(`Failed to create scratch card.`);
   }
 
 }
@@ -98,7 +98,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       users,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Something gone wrong");
     return next(new ErrorHandler("Something went wrong", 500));
   }
 });
@@ -144,7 +144,7 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Congratulations! You have successfully completed all the tasks. Please comeback after sometimes!!!", 404))
     res.status(200).json({ tasks });
   } catch (error) {
-    console.error('Error fetching user tasks:', error);
+    console.error('Error fetching user tasks');
     return next(new ErrorHandler("Internal server error", 500))
   }
 })
@@ -158,7 +158,7 @@ export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("You don't have any Scratch Cards right now, Please check after sometimes!", 404))
     res.status(200).json({ scratchCard });
   } catch (error) {
-    console.error('Error fetching user scratchCard:', error);
+    console.error('Error fetching user scratchCard');
     return next(new ErrorHandler("Internal server error", 500))
   }
 })
@@ -197,7 +197,6 @@ export const completeTask = catchAsyncError(async (req, res, next) => {
       message: "Task completed successfully"
     });
   } catch (error) {
-
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
 })
@@ -235,7 +234,7 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
       message: "Scratch Card completed successfully"
     });
   } catch (error) {
-    console.error("Error completing Scratch Card:", error);
+    console.error("Error completing Scratch Card:");
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
 })
