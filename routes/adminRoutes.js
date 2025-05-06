@@ -1,6 +1,7 @@
 import express from "express";
 import {
     adminLogin, adminLogout, adminProfile, adminRegister, allUsers,
+    bulkRedeemAction,
     createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
     getSuspectedUser,
     sendAnnouncement,
@@ -28,6 +29,7 @@ router.post("/delete-user/:id", isAdmin, deleteUser)
 // router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
 router.post("/withdraw-actions/:id", isAdmin, withdrawRequestActions)
+router.post("/bulk-redeem", isAdmin, bulkRedeemAction)
 
 
 

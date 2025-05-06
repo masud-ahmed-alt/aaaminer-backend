@@ -528,6 +528,51 @@ export const withdrawRequestActions = catchAsyncError(async (req, res, next) => 
     }
 });
 
+
+export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
+    const requests = req.body; 
+
+    if (!Array.isArray(requests) || requests.length === 0) {
+        return next(new ErrorHandler("No data provided", 400));
+    }
+
+    const results = [];
+
+    for (const item of requests) {
+        const { request_id, giftCode } = item;
+
+        if (!request_id || !giftCode || giftCode.trim() === "") {
+            results.push({ request_id, status: "failed", message: "Invalid ID or giftCode" });
+            continue;
+        }
+
+        const withdraw = await Withdraw.findById(request_id);
+
+        if (!withdraw) {
+            results.push({ request_id, status: "failed", message: "Withdraw not found" });
+            continue;
+        }
+
+        if (withdraw.status === "success") {
+            results.push({ request_id, status: "skipped", message: "Already accepted" });
+            continue;
+        }
+
+        withdraw.voucher = giftCode.trim();
+        withdraw.status = "success";
+        await withdraw.save();
+
+        results.push({ request_id, status: "success", message: "Updated successfully" });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Bulk redeem complete",
+        results
+    });
+});
+
+
 export const setTopTenUser = catchAsyncError(async (req, res, next) => {
     await TopTenUsers.deleteMany();
     const topTenUsers = await User.find({
