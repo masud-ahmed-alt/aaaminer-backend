@@ -40,9 +40,9 @@ export const register = catchAsyncError(async (req, res, next) => {
     }
 
     // Reject if local part starts/ends with dot or has consecutive dots
-    if (/(\.\.)|(^\.)|(\.$)/.test(localPart)) {
+    if (/(\.\.)|(^\.)|(\.$)|(\+)/.test(localPart)) {
       return next(new ErrorHandler("Suspicious email detected.", 400));
-    }
+    }    
   }
 
   // Check if user already exists
