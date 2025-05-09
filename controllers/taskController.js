@@ -77,7 +77,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
 
     if (type === "friend") {
       users = await User.find({ referredBy: userId, isverified: true })
-        .select("username walletPoints -_id")
+        .select("name walletPoints -_id")
         .sort({ walletPoints: -1 })
         .lean();
     } else if (type === "toppers") {
@@ -85,12 +85,12 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         .populate("user", "username walletPoints -_id")
         .lean();
       users = topUsers.map((entry) => ({
-        username: entry.user?.username,
+        name: entry.user?.username,
         walletPoints: 0,
       }));
     } else {
       users = await User.find({ isBanned: false })
-        .select("username walletPoints -_id")
+        .select("name walletPoints -_id")
         .sort({ walletPoints: -1 }).limit(100)
         .lean();
     }
@@ -100,7 +100,6 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       users,
     });
   } catch (error) {
-    console.error("Something gone wrong");
     return next(new ErrorHandler("Something went wrong", 500));
   }
 });
