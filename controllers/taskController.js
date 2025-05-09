@@ -75,24 +75,32 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
 
     let users = [];
 
-    if (type === "friend") {
-      users = await User.find({ referredBy: userId, isverified: true })
-        .select("name walletPoints -_id")
-        .sort({ walletPoints: -1 })
-        .lean();
-    } else if (type === "toppers") {
-      const topUsers = await TopTenUsers.find()
-        .populate("user", "name walletPoints -_id")
-        .lean();
-      users = topUsers.map((entry) => ({
-        name: entry.user?.username,
-        walletPoints: 0,
-      }));
-    } else {
-      users = await User.find({ isBanned: false })
-        .select("name walletPoints -_id")
-        .sort({ walletPoints: -1 }).limit(100)
-        .lean();
+    switch (type) {
+      case "friend":
+        users = await User.find({ referredBy: userId, isverified: true })
+          .select("name walletPoints -_id")
+          .sort({ walletPoints: -1 })
+          .lean();
+        break;
+
+      case "toppers":
+        const topUsers = await TopTenUsers.find()
+          .populate("user", "name walletPoints -_id")
+          .lean();
+
+        users = topUsers.map((entry) => ({
+          name: entry.user?.name || "Unknown",
+          walletPoints: entry.user?.walletPoints || 0,
+        }));
+        break;
+
+      default:
+        users = await User.find({ isBanned: false })
+          .select("name walletPoints -_id")
+          .sort({ walletPoints: -1 })
+          .limit(100)
+          .lean();
+        break;
     }
 
     res.status(200).json({
@@ -100,9 +108,11 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       users,
     });
   } catch (error) {
+    console.error("Error in getRanking:", error);
     return next(new ErrorHandler("Something went wrong", 500));
   }
 });
+
 
 export const generateDailyTasks = catchAsyncError(async () => {
   const task = await Task.find()
