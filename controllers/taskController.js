@@ -82,7 +82,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         .lean();
     } else if (type === "toppers") {
       const topUsers = await TopTenUsers.find()
-        .populate("user", "username walletPoints -_id")
+        .populate("user", "name walletPoints -_id")
         .lean();
       users = topUsers.map((entry) => ({
         name: entry.user?.username,
