@@ -57,10 +57,7 @@ export const register = catchAsyncError(async (req, res, next) => {
   // Check referral username if provided
  if (referal) {
   referal = referal.toLowerCase();
-  console.log(referal);
-  
   referalUser = await User.findOne({ username: referal });
-   console.log(referalUser);
   if (!referalUser) {
     return next(new ErrorHandler("Referral user not found.", 404));
   }

@@ -33,7 +33,7 @@ export const otpRequestLimiter = rateLimit({
 
 export const signupRequestLimiter = rateLimit({
   windowMs: 1440 * 60 * 1000, // 24 hours
-  max: 3, // Limit each IP to 3 signup attempts per 24 hours
+  max: 5, // Limit each IP to 3 signup attempts per 24 hours
   message: {
     success: false,
     message: 'Too many signup attempts detected. Please wait 24 hours before trying again. Creating multiple accounts may result in a permanent ban.',
