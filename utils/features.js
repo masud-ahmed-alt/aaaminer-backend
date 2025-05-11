@@ -171,13 +171,10 @@ const generateUsername = async () => {
     for (let i = 0; i < 6; i++) {
         username += chars[Math.floor(Math.random() * chars.length)];
     }
-
     // Ensure at least one number
     username += numbers[Math.floor(Math.random() * numbers.length)];
-
     // Shuffle the username to randomize number placement
     username = username.split('').sort(() => 0.5 - Math.random()).join('');
-
     return username;
 }
 const extractName = async (email) => {

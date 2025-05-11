@@ -9,10 +9,10 @@ import { extractName, generateUsername, getActivityLog, sendToken, setAndSendOTP
 import { ErrorHandler } from '../utils/utility.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
-  const { email, password, referal } = req.body;
+  const { name, email, password, referal } = req.body;
 
   // Validate all required fields
-  if (!email || !password) {
+  if (!name || !email || !password) {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
@@ -54,16 +54,18 @@ export const register = catchAsyncError(async (req, res, next) => {
   let referalUser = null;
 
   // Check referral username if provided
-  if (referal) {
-    referalUser = await User.findOne({ username: referal });
-    if (!referalUser) {
-      return next(new ErrorHandler("Referral user does not exist", 400));
-    }
+ if (referal) {
+  referal = referal.toLowerCase();
+  referalUser = await User.findOne({ username: referal });
+  if (!referalUser) {
+    return next(new ErrorHandler("Referral user not found.", 404));
   }
+}
+
 
   // Auto-generate username and name
   const username = await generateUsername();
-  const name = await extractName(email);
+  // const name = await extractName(email);
 
   try {
     // Create the new user
