@@ -75,7 +75,7 @@ export const register = catchAsyncError(async (req, res, next) => {
       name,
       username,
       password,
-      walletPoints: 1000,
+      walletPoints: 500,
       referredBy: referalUser ? referalUser._id : null,
     });
 
@@ -198,7 +198,7 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   let referalUser = []
   if (user.referredBy) {
     referalUser = await User.findById(user.referredBy)
-    referalUser.walletPoints += 1000
+    referalUser.walletPoints += 500
     await referalUser.save();
   }
 

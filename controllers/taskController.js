@@ -19,26 +19,39 @@ const createTask = async () => {
       "Finish the mission",
       "Win the battle",
       "Reach the next stage",
-      "Complete the challenge"
+      "Complete the challenge",
+      "Master the arena"
     ];
 
-    const tasks = Array.from({ length: 10 }, () => {
-      const rewardPoints = Math.floor(Math.random() * (120 - 80 + 1)) + 80; 
-      const randomTemplate = taskNameTemplates[Math.floor(Math.random() * taskNameTemplates.length)];
-      return {
-        taskName: `${randomTemplate}`,
-        rewardPoints,
-      };
-    });
-    
-    
+    // Shuffle task name templates to ensure uniqueness
+    const shuffledTemplates = taskNameTemplates.sort(() => Math.random() - 0.5);
 
+    const tasks = [];
+
+    // Add 1 special task with rewardPoints between 95–105
+    const specialTask = {
+      taskName: shuffledTemplates[0],
+      rewardPoints: Math.floor(Math.random() * (105 - 95 + 1)) + 95,
+    };
+    tasks.push(specialTask);
+
+    // Add 9 tasks with rewardPoints between 50–90
+    for (let i = 1; i <= 9; i++) {
+      const task = {
+        taskName: shuffledTemplates[i],
+        rewardPoints: Math.floor(Math.random() * (90 - 50 + 1)) + 50,
+      };
+      tasks.push(task);
+    }
+
+    // Insert tasks into DB
     await Task.insertMany(tasks);
-    console.log("New task generated");
+    getActivityLog("New tasks generated successfully.");
   } catch (error) {
-    console.log(`Failed to generate new tasks.`);
+    getActivityLog("Failed to generate new tasks");
   }
-}
+};
+
 
 const createScratchCard = async () => {
   try {
@@ -57,9 +70,9 @@ const createScratchCard = async () => {
     }));
 
     await ScratchCard.insertMany(scratchCards);
-    console.log("New Scratch Cards generated.....");
+    getActivityLog("New Scratch Cards generated.....");
   } catch (error) {
-    console.log(`Failed to create scratch card.`);
+    getActivityLog(`Failed to create scratch card.`);
   }
 
 }
