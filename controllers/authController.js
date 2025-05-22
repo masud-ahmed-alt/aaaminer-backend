@@ -10,7 +10,7 @@ import { ErrorHandler } from '../utils/utility.js';
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
-  let referal  = req.body.referal;
+  let referal = req.body.referal;
 
   // Validate all required fields
   if (!name || !email || !password) {
@@ -43,7 +43,7 @@ export const register = catchAsyncError(async (req, res, next) => {
     // Reject if local part starts/ends with dot or has consecutive dots
     if (/(\.\.)|(^\.)|(\.$)|(\+)/.test(localPart)) {
       return next(new ErrorHandler("Suspicious email detected.", 400));
-    }    
+    }
   }
 
   // Check if user already exists
@@ -55,13 +55,13 @@ export const register = catchAsyncError(async (req, res, next) => {
   let referalUser = null;
 
   // Check referral username if provided
- if (referal) {
-  referal = referal.toLowerCase();
-  referalUser = await User.findOne({ username: referal });
-  if (!referalUser) {
-    return next(new ErrorHandler("Referral user not found.", 404));
+  if (referal) {
+    referal = referal.toLowerCase();
+    referalUser = await User.findOne({ username: referal });
+    if (!referalUser) {
+      return next(new ErrorHandler("Referral user not found.", 404));
+    }
   }
-}
 
 
   // Auto-generate username and name
@@ -260,6 +260,8 @@ export const getHomeNotification = catchAsyncError(async (req, res, next) => {
 export const updateProfile = catchAsyncError(async (req, res, next) => {
   const userId = req.user;
   const { name, phone } = req.body;
+  let country = req.body.country;
+
 
   if (!userId) {
     return next(new ErrorHandler("Unauthorized access", 401));
@@ -277,6 +279,10 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid name format", 400));
   }
 
+  if (country && typeof country !== "string") {
+    return next(new ErrorHandler("Invalid country format", 400));
+  }
+
   const phoneRegex = /^[0-9]{10}$/;
   if (phone) {
     if (!phoneRegex.test(phone)) {
@@ -286,6 +292,11 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
   if (name) user.name = name.trim();
   if (phone) user.phone = phone.trim();
+
+  if (country) {
+    country = country.toLowerCase();
+    user.country = country.trim()
+  }
 
   await user.save();
   getActivityLog(user.name, "profile updated")
@@ -378,14 +389,25 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
+  if (!userData.country)
+    return next(new ErrorHandler("Please update your country to make a redeem", 400));
 
   if (!wallet || wallet < 10000 || userData.walletPoints < 10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
-  const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
-  if (!validPoints.has(wallet)) {
-    return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
+  if (userData.country !== "india") {
+    const validPoints = new Set([500000, 1000000, 1500000]);
+    if (!validPoints.has(wallet)) {
+      return next(new ErrorHandler(`Since you are from ${userData.country.toUpperCase()}. Please select from: ` + [...validPoints].join(", "), 400));
+    }
+  } else {
+    const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
+    if (!validPoints.has(wallet)) {
+      return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
+    }
   }
+
+
 
 
   if (userData.walletPoints < wallet)
