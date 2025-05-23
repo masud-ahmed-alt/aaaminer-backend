@@ -474,7 +474,7 @@ export const withdrawHistory = catchAsyncError(async (req, res, next) => {
     }
 
     const withdraws = await Withdraw.find({ status })
-        .populate("user", "name username")
+        .populate("user", "name username country")
 
     res.status(200).json({
         success: true,
