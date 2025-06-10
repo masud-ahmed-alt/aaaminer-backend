@@ -1,12 +1,17 @@
-
-import { compare } from 'bcrypt';
-import bcrypt from 'bcryptjs';
-import { catchAsyncError } from '../middlewares/errorMiddleware.js';
-import HomeNotification from '../models/HomeNotification.js';
-import User from '../models/User.js';
-import Withdraw from '../models/Withdraw.js';
-import { extractName, generateUsername, getActivityLog, sendToken, setAndSendOTP } from '../utils/features.js';
-import { ErrorHandler } from '../utils/utility.js';
+import { compare } from "bcrypt";
+import bcrypt from "bcryptjs";
+import { catchAsyncError } from "../middlewares/errorMiddleware.js";
+import HomeNotification from "../models/HomeNotification.js";
+import User from "../models/User.js";
+import Withdraw from "../models/Withdraw.js";
+import {
+  extractName,
+  generateUsername,
+  getActivityLog,
+  sendToken,
+  setAndSendOTP,
+} from "../utils/features.js";
+import { ErrorHandler } from "../utils/utility.js";
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -24,16 +29,24 @@ export const register = catchAsyncError(async (req, res, next) => {
   }
 
   // Split email into local part and domain
-  const [localPart, domain] = email.split('@');
+  const [localPart, domain] = email.split("@");
 
   // Validate against known/trusted domains
-  const knownDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'live.com'];
+  const knownDomains = [
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "live.com",
+  ];
   if (!knownDomains.includes(domain)) {
-    return next(new ErrorHandler("Email domain is not from a trusted provider.", 400));
+    return next(
+      new ErrorHandler("Email domain is not from a trusted provider.", 400)
+    );
   }
 
   // Additional stricter checks for Gmail
-  if (domain === 'gmail.com') {
+  if (domain === "gmail.com") {
     // Reject if too many dots in local part (e.g., more than 2)
     const dotCount = (localPart.match(/\./g) || []).length;
     if (dotCount > 1) {
@@ -49,7 +62,9 @@ export const register = catchAsyncError(async (req, res, next) => {
   // Check if user already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
-    return next(new ErrorHandler("You are already registered. Please log in.", 400));
+    return next(
+      new ErrorHandler("You are already registered. Please log in.", 400)
+    );
   }
 
   let referalUser = null;
@@ -62,7 +77,6 @@ export const register = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Referral user not found.", 404));
     }
   }
-
 
   // Auto-generate username and name
   const username = await generateUsername();
@@ -80,49 +94,52 @@ export const register = catchAsyncError(async (req, res, next) => {
     });
 
     const userCount = await User.countDocuments();
-    req.io.emit('liveUserCount', {
+    req.io.emit("liveUserCount", {
       success: true,
       users: userCount,
     });
-    getActivityLog(user.name, "new profile created")
+
+    getActivityLog(user.name, "new profile created");
     // Send response with token
     sendToken(res, user, 201, `Welcome`);
   } catch (error) {
     console.error(error);
-    return next(new ErrorHandler("Registration failed. Please try again.", 500));
+    return next(
+      new ErrorHandler("Registration failed. Please try again.", 500)
+    );
   }
 });
 
-
-
 export const login = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) return next(new ErrorHandler("Please enter email and password", 400))
+  if (!email || !password)
+    return next(new ErrorHandler("Please enter email and password", 400));
   const user = await User.findOne({ email }).select("+password");
-  if (!user) return next(new ErrorHandler("Invalid email or password", 401))
+  if (!user) return next(new ErrorHandler("Invalid email or password", 401));
 
-  const isMatch = await compare(password, user.password)
-  if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401))
-  getActivityLog(user.name, "Logged in")
-  sendToken(res, user, 200, `Welcome  ${user.name}!`)
-})
-
+  const isMatch = await compare(password, user.password);
+  if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401));
+  getActivityLog(user.name, "Logged in");
+  sendToken(res, user, 200, `Welcome  ${user.name}!`);
+});
 
 export const profile = catchAsyncError(async (req, res, next) => {
   const user = req.user;
-  const profileUser = await User.findById(user)
-  const referred = await User.find({ referredBy: user, isverified: true }).select("username").countDocuments()
+  const profileUser = await User.findById(user);
+  const referred = await User.find({ referredBy: user, isverified: true })
+    .select("username")
+    .countDocuments();
 
   let profile = {
     ...profileUser.toObject(),
-    referredCount: referred
-  }
-  getActivityLog(profile.name, "access profile")
+    referredCount: referred,
+  };
+
   res.status(200).json({
     success: true,
-    profile
-  })
-})
+    profile,
+  });
+});
 
 // get myvouchers and withdraw request history
 export const myVouchers = catchAsyncError(async (req, res, next) => {
@@ -162,43 +179,42 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 // send OTP for email verification
 
 export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
-  const userid = req.user
-  const user = await User.findById(userid)
+  const userid = req.user;
+  const user = await User.findById(userid);
 
-  setAndSendOTP(user, "Profile Verification !")
+  setAndSendOTP(user, "Profile Verification !");
 
   res.status(200).json({
     success: true,
-    message: `Otp send to ${user.email}`
-  })
-})
+    message: `Otp send to ${user.email}`,
+  });
+});
 
 // verify email after otp verification
 export const verifyEmail = catchAsyncError(async (req, res, next) => {
-  const userid = req.user
-  const { otp } = req.body
+  const userid = req.user;
+  const { otp } = req.body;
 
-  const user = await User.findById(userid).select("otp emailOTP otpExpiry referredBy")
-  if (!user) return next(new ErrorHandler("User not found", 404))
+  const user = await User.findById(userid).select(
+    "otp emailOTP otpExpiry referredBy"
+  );
+  if (!user) return next(new ErrorHandler("User not found", 404));
 
   if (otp !== user.emailOTP || user.otpExpiry < Date.now())
-    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
-
+    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400));
 
   user.isverified = true;
   user.emailOTP = undefined;
   user.otpExpiry = undefined;
 
-
   // Add referral rewards if applicable
-  let referalUser = []
+  let referalUser = [];
   if (user.referredBy) {
-    referalUser = await User.findById(user.referredBy)
-    referalUser.walletPoints += 500
+    referalUser = await User.findById(user.referredBy);
+    referalUser.walletPoints += 500;
     await referalUser.save();
   }
 
@@ -206,32 +222,33 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    message: "Congratulation! Profile verified !"
-  })
-})
-
+    message: "Congratulation! Profile verified !",
+  });
+});
 
 // send OTP for forgot password
 export const forgotPassSendOtp = catchAsyncError(async (req, res, next) => {
-  const { email } = req.body
-  if (!email) return next(new ErrorHandler("Please enter email !", 400))
+  const { email } = req.body;
+  if (!email) return next(new ErrorHandler("Please enter email !", 400));
 
-  const user = await User.findOne({ email })
-  if (!user) return next(new ErrorHandler("Email not found !", 404))
-  setAndSendOTP(user, "OTP for Password Recovery!")
+  const user = await User.findOne({ email });
+  if (!user) return next(new ErrorHandler("Email not found !", 404));
+  setAndSendOTP(user, "OTP for Password Recovery!");
   res.status(200).json({
     success: true,
-    message: `OTP send to ${email}`
-  })
-})
+    message: `OTP send to ${email}`,
+  });
+});
 
 export const passwordRecovery = catchAsyncError(async (req, res, next) => {
-  const { email, password, otp } = req.body
-  const user = await User.findOne({ email }).select("emailOTP otpExpiry isverified password")
-  if (!user) return next(new ErrorHandler("User not found!", 404))
+  const { email, password, otp } = req.body;
+  const user = await User.findOne({ email }).select(
+    "emailOTP otpExpiry isverified password"
+  );
+  if (!user) return next(new ErrorHandler("User not found!", 404));
 
   if (otp !== user.emailOTP || user.otpExpiry < Date.now())
-    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400))
+    return next(new ErrorHandler("Invalid OTP or OTP has expired !", 400));
 
   user.password = password;
   user.emailOTP = undefined;
@@ -240,28 +257,25 @@ export const passwordRecovery = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "Password updated successfully!"
+    message: "Password updated successfully!",
   });
-})
+});
 
 export const getHomeNotification = catchAsyncError(async (req, res, next) => {
-
   const notification = await HomeNotification.findOne()
     .select("title createdAt")
-    .sort("-createdAt")
+    .sort("-createdAt");
 
   return res.status(200).json({
     success: true,
-    notification
-  })
-
-})
+    notification,
+  });
+});
 
 export const updateProfile = catchAsyncError(async (req, res, next) => {
   const userId = req.user;
   const { name, phone } = req.body;
   let country = req.body.country;
-
 
   if (!userId) {
     return next(new ErrorHandler("Unauthorized access", 401));
@@ -272,8 +286,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Profile not found", 404));
   }
 
-  if (!name)
-    return next(new ErrorHandler("Name field is required!", 400))
+  if (!name) return next(new ErrorHandler("Name field is required!", 400));
 
   if (name && typeof name !== "string") {
     return next(new ErrorHandler("Invalid name format", 400));
@@ -286,7 +299,9 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   const phoneRegex = /^[0-9]{10}$/;
   if (phone) {
     if (!phoneRegex.test(phone)) {
-      return next(new ErrorHandler("Invalid phone number. Must be 10 digits.", 400));
+      return next(
+        new ErrorHandler("Invalid phone number. Must be 10 digits.", 400)
+      );
     }
   }
 
@@ -295,11 +310,11 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
   if (country) {
     country = country.toLowerCase();
-    user.country = country.trim()
+    user.country = country.trim();
   }
 
   await user.save();
-  getActivityLog(user.name, "profile updated")
+  getActivityLog(user.name, "profile updated");
 
   res.status(200).json({
     success: true,
@@ -307,36 +322,36 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-
 export const changePassword = catchAsyncError(async (req, res, next) => {
-  const userId = req.user
-  const { currentPassword, newPassword } = req.body
+  const userId = req.user;
+  const { currentPassword, newPassword } = req.body;
 
   if (!userId) {
-    return next(new ErrorHandler("Unauthorized access", 401))
+    return next(new ErrorHandler("Unauthorized access", 401));
   }
 
   // Validate inputs
   if (!currentPassword || !newPassword) {
-    return next(new ErrorHandler("Please provide both current and new password", 400))
+    return next(
+      new ErrorHandler("Please provide both current and new password", 400)
+    );
   }
 
   // Find the user
-  const user = await User.findById(userId).select('+password')
+  const user = await User.findById(userId).select("+password");
   if (!user) {
-    return next(new ErrorHandler("User not found", 404))
+    return next(new ErrorHandler("User not found", 404));
   }
 
   // Compare the current password
-  const isMatch = await bcrypt.compare(currentPassword, user.password)
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
   if (!isMatch) {
-    return next(new ErrorHandler("Current password is incorrect", 400))
+    return next(new ErrorHandler("Current password is incorrect", 400));
   }
 
   // Update to new password
-  user.password = newPassword
-  await user.save()
+  user.password = newPassword;
+  await user.save();
 
   res.status(200).json({
     success: true,
@@ -344,40 +359,40 @@ export const changePassword = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const checkRedeemEligibility = catchAsyncError(
+  async (req, res, next) => {
+    const userId = req.user;
+    if (!userId) {
+      return next(new ErrorHandler("Invalid user ID", 400));
+    }
+    // Fetch the user with only required fields
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+    // Consolidate all ineligibility checks
+    if (user.isBanned) {
+      return next(new ErrorHandler("You are permanently banned", 401));
+    } else if (user.walletPoints < 10000) {
+      return next(new ErrorHandler("You are not eligible to redeem", 401));
+    }
 
-export const checkRedeemEligibility = catchAsyncError(async (req, res, next) => {
-  const userId = req.user;
-  if (!userId) {
-    return next(new ErrorHandler("Invalid user ID", 400));
+    // const topUsersCount = await TopTenUsers.find().countDocuments()
+    // if (topUsersCount < 1)
+    //   return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
+
+    // // Step 1: Check if the user is in the top 10
+    // const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
+    // if (!isInTopTen) {
+    //   return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
+    // }
+
+    res.status(200).json({
+      success: true,
+      isEligible: true,
+    });
   }
-  // Fetch the user with only required fields
-  const user = await User.findById(userId)
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
-  }
-  // Consolidate all ineligibility checks
-  if (user.isBanned) {
-    return next(new ErrorHandler("You are permanently banned", 401));
-  } else if (user.walletPoints < 10000) {
-    return next(new ErrorHandler("You are not eligible to redeem", 401));
-  }
-
-  // const topUsersCount = await TopTenUsers.find().countDocuments()
-  // if (topUsersCount < 1)
-  //   return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
-
-  // // Step 1: Check if the user is in the top 10
-  // const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
-  // if (!isInTopTen) {
-  //   return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
-  // }
-
-  res.status(200).json({
-    success: true,
-    isEligible: true,
-  });
-});
-
+);
 
 // Withdraw functionalities
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
@@ -390,7 +405,9 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
   if (!userData.country)
-    return next(new ErrorHandler("Please update your country to make a redeem", 400));
+    return next(
+      new ErrorHandler("Please update your country to make a redeem", 400)
+    );
 
   if (!wallet || wallet < 10000 || userData.walletPoints < 10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
@@ -398,21 +415,28 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.country !== "india") {
     const validPoints = new Set([500000, 1000000, 1500000]);
     if (!validPoints.has(wallet)) {
-      return next(new ErrorHandler(`Since you are from ${userData.country.toUpperCase()}. Please select from: ` + [...validPoints].join(", "), 400));
+      return next(
+        new ErrorHandler(
+          `Since you are from ${userData.country.toUpperCase()}. Please select from: ` +
+            [...validPoints].join(", "),
+          400
+        )
+      );
     }
   } else {
     const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
     if (!validPoints.has(wallet)) {
-      return next(new ErrorHandler("Please select from: " + [...validPoints].join(", "), 400));
+      return next(
+        new ErrorHandler(
+          "Please select from: " + [...validPoints].join(", "),
+          400
+        )
+      );
     }
   }
 
-
-
-
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
-
 
   // Deduct points and create withdrawal request
   const amount = wallet * 0.001;
@@ -426,7 +450,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   });
 
   await userData.save();
-  getActivityLog(userData.name, `redeem requested ${wallet} pts`)
+  getActivityLog(userData.name, `redeem requested ${wallet} pts`);
 
   res.status(201).json({
     success: true,

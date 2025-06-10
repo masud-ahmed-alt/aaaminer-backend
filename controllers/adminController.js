@@ -15,6 +15,7 @@ import { banMailMsg } from '../utils/banMessage.js';
 import { unbanMailMsg } from '../utils/unbanMessage.js';
 import { compare } from 'bcrypt';
 
+const activeUsers = new Set();
 
 
 export const adminProfile = catchAsyncError(async (req, res, next) => {
@@ -110,16 +111,25 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
 
 export const setupSocketEvents = (io) => {
     io.on('connection', async (socket) => {
-        console.log('New client connected:', socket.id);
+       
+        try {
+            const userCount = await User.countDocuments();
+            socket.emit('liveUserCount', {
+                success: true,
+                users: userCount,
+            });
+        } catch (error) {
+            console.error("Error sending live user count:", error);
+        }
 
-        // Emit current user count immediately after connection
-        const userCount = await User.countDocuments();
-        socket.emit('liveUserCount', {
+        // ✅ Add this connection to the active users
+        activeUsers.add(socket.id);
+     
+        io.emit('liveActiveUserCount', {
             success: true,
-            users: userCount,
+            activeUsers: activeUsers.size
         });
 
-        // Handle further user count updates when new users register
         socket.on('getLiveUserCount', async () => {
             const updatedUserCount = await User.countDocuments();
             socket.emit('liveUserCount', {
@@ -129,10 +139,16 @@ export const setupSocketEvents = (io) => {
         });
 
         socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
+            activeUsers.delete(socket.id);
+            io.emit('liveActiveUserCount', {
+                success: true,
+                activeUsers: activeUsers.size
+            });
         });
     });
 };
+
+
 
 export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
     const { subject, header, h2, p1, p2, p3, btn_text, btn_url } = req.body;
