@@ -402,6 +402,9 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const userData = await User.findById(user);
   if (!userData) return next(new ErrorHandler("User not found", 404));
 
+  if (!userData.isverified)
+    return next(new ErrorHandler("Please verify your profile.", 400));
+
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
   if (!userData.country)
