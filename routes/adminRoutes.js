@@ -9,7 +9,8 @@ import {
     uploadCarousalImage,
     userBanActions,
     userGrowData, withdrawHistory,
-    withdrawRequestActions
+    withdrawRequestActions,
+    withdrawRequestDelete
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js";
 
@@ -54,5 +55,6 @@ router.get("/get-banned-user", isAdmin, getBannedUser);
 router.put("/user-ban-action/:userId", isAdmin, userBanActions);
 
 router.get("/top-ten-user", isAdmin, setTopTenUser)
+router.delete("/delete-request/:id", isAdmin, withdrawRequestDelete)
 
 export default router;

@@ -624,6 +624,7 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
 });
 
 
+
 export const scanUser = async () => {
     const users = await findSuspectedUser();
 
@@ -633,3 +634,23 @@ export const scanUser = async () => {
         console.log(`${user.name} ban status ${user.isBanned} updated`);
     }
 }
+
+
+export const withdrawRequestDelete = catchAsyncError(async (req, res, next) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return next(new ErrorHandler("Please select redeem ID", 400));
+    }
+
+    const result = await Withdraw.findByIdAndDelete(id);
+
+    if (!result) {
+        return next(new ErrorHandler("Request not found.", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Withdraw request deleted successfully."
+    });
+});
