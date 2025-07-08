@@ -14,6 +14,7 @@ import TopTenUsers from '../models/TopTenUsers.js';
 import { banMailMsg } from '../utils/banMessage.js';
 import { unbanMailMsg } from '../utils/unbanMessage.js';
 import { compare } from 'bcrypt';
+import RedeemCode from '../models/RedeemCode.js';
 
 const activeUsers = new Set();
 
@@ -546,47 +547,85 @@ export const withdrawRequestActions = catchAsyncError(async (req, res, next) => 
 
 
 export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
-    const requests = req.body; 
+  const requests = req.body;
 
-    if (!Array.isArray(requests) || requests.length === 0) {
-        return next(new ErrorHandler("No data provided", 400));
+  if (!Array.isArray(requests) || requests.length === 0) {
+    return next(new ErrorHandler("No data provided", 400));
+  }
+
+  const ids = requests
+    .map((item) => item.request_id)
+    .filter((id) => id);
+
+  // Fetch all relevant withdraws and populate user
+  const withdraws = await Withdraw.find({ _id: { $in: ids } }).populate({
+    path: 'user',
+    select: 'inreview'
+  });
+
+  // Map all withdraws regardless of user review status
+  const withdrawMap = new Map();
+  for (const w of withdraws) {
+    withdrawMap.set(w._id.toString(), w);
+  }
+
+  const results = [];
+  const bulkOps = [];
+
+  for (const item of requests) {
+    const { request_id, giftCode } = item;
+
+    if (!request_id || !giftCode || giftCode.trim() === "") {
+      results.push({ request_id, status: "failed", message: "Invalid ID or giftCode" });
+      continue;
     }
 
-    const results = [];
+    const withdraw = withdrawMap.get(request_id);
 
-    for (const item of requests) {
-        const { request_id, giftCode } = item;
-
-        if (!request_id || !giftCode || giftCode.trim() === "") {
-            results.push({ request_id, status: "failed", message: "Invalid ID or giftCode" });
-            continue;
-        }
-
-        const withdraw = await Withdraw.findById(request_id);
-
-        if (!withdraw) {
-            results.push({ request_id, status: "failed", message: "Withdraw not found" });
-            continue;
-        }
-
-        if (withdraw.status === "success") {
-            results.push({ request_id, status: "skipped", message: "Already accepted" });
-            continue;
-        }
-
-        withdraw.voucher = giftCode.trim();
-        withdraw.status = "success";
-        await withdraw.save();
-
-        results.push({ request_id, status: "success", message: "Updated successfully" });
+    if (!withdraw) {
+      results.push({ request_id, status: "failed", message: "Withdraw not found" });
+      continue;
     }
 
-    return res.status(200).json({
-        success: true,
-        message: "Bulk redeem complete",
-        results
+    if (!withdraw.user || withdraw.user.inreview === true) {
+      results.push({ request_id, status: "failed", message: "User under review" });
+      continue;
+    }
+
+    if (withdraw.status === "success") {
+      results.push({ request_id, status: "skipped", message: "Already accepted" });
+      continue;
+    }
+
+    // Queue update
+    bulkOps.push({
+      updateOne: {
+        filter: { _id: request_id },
+        update: {
+          $set: {
+            voucher: giftCode.trim(),
+            status: "success",
+          },
+        },
+      },
     });
+
+    results.push({ request_id, status: "success", message: "Queued for update" });
+  }
+
+  if (bulkOps.length > 0) {
+    await Withdraw.bulkWrite(bulkOps);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Bulk redeem complete",
+    results,
+  });
 });
+
+
+
 
 
 export const setTopTenUser = catchAsyncError(async (req, res, next) => {
@@ -653,4 +692,37 @@ export const withdrawRequestDelete = catchAsyncError(async (req, res, next) => {
         success: true,
         message: "Withdraw request deleted successfully."
     });
+});
+
+
+export const addRedeemCode = catchAsyncError(async (req, res, next) => {
+  const redeemCodeList = req.body;
+
+  if (!Array.isArray(redeemCodeList) || redeemCodeList.length === 0) {
+    return next(new ErrorHandler("Request body must be a non-empty array of redeem codes", 400));
+  }
+
+  const codeDocs = [];
+
+  for (const item of redeemCodeList) {
+    const { redeemCode, amount } = item;
+
+    if (!redeemCode || redeemCode.trim() === "" || !amount || isNaN(amount)) {
+      return next(
+        new ErrorHandler("Each item must contain a valid redeemCode and numeric amount", 400)
+      );
+    }
+
+    codeDocs.push({
+      code: redeemCode.trim(),
+      amount: Number(amount),
+    });
+  }
+
+  const insertedCodes = await RedeemCode.insertMany(codeDocs);
+
+  res.status(201).json({
+    success: true,
+    message: `${insertedCodes.length} redeem code(s) added successfully`,
+  });
 });

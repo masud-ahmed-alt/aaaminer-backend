@@ -163,8 +163,8 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 
   // ✅ Updated field selection to include `voucher` for "all" and "success"
   const selectFields = ["success", "all"].includes(status)
-    ? "name voucher points status createdAt updatedAt"
-    : "name points status createdAt updatedAt";
+    ? "name redeemOption voucher points status createdAt updatedAt"
+    : "name redeemOption points status createdAt updatedAt";
 
   const sortField = status === "success" ? "-updatedAt" : "-createdAt";
 
@@ -397,7 +397,7 @@ export const checkRedeemEligibility = catchAsyncError(
 // Withdraw functionalities
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const user = req.user;
-  const { wallet } = req.body;
+  const { wallet, option = 0 } = req.body; 
 
   const userData = await User.findById(user);
   if (!userData) return next(new ErrorHandler("User not found", 404));
@@ -407,12 +407,13 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
+
   if (!userData.country)
     return next(
       new ErrorHandler("Please update your country to make a redeem", 400)
     );
 
-  if (!wallet || wallet < 10000 || userData.walletPoints < 10000)
+  if (!wallet || userData.walletPoints < 10000)
     return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
 
   if (userData.country !== "india") {
@@ -441,13 +442,23 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (userData.walletPoints < wallet)
     return next(new ErrorHandler("Insufficient points", 400));
 
-  // Deduct points and create withdrawal request
+  // Validate option value and assign redeem name
+  let redeemName;
+  if (option === 0 || option === "0") {
+    redeemName = "Amazon gift voucher";
+  } else if (option === 1 || option === "1") {
+    redeemName = "Google Play voucher";
+  } else {
+    return next(new ErrorHandler("Invalid option. Use 0 for Amazon, 1 for Google Play.", 400));
+  }
+
   const amount = wallet * 0.001;
   userData.walletPoints -= wallet;
 
   await Withdraw.create({
     user: user,
-    name: "Amazon gift voucher",
+    name: redeemName,
+    redeemOption:option.toString(),
     amount,
     points: wallet,
   });
@@ -460,3 +471,4 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     message: "Withdrawal requested",
   });
 });
+

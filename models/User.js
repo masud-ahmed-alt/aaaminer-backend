@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   otpExpiry: { type: Date, select: false },
   isverified: { type: Boolean, required: true, default: false },
   isBanned: { type: Boolean, required: true, default: false },
+  inreview: { type: Boolean, default: false },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
 }, {
   timestamps: true

@@ -14,6 +14,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import { homePage } from "./utils/homePage.js";
+import { instantRedeemCron } from "./automation/redeemAuto.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,6 +46,7 @@ const dbURI = process.env.MONGO_URI;
 connectDB(dbURI);
 
 taskCron();
+// instantRedeemCron()
 scratchCardCron();
 usersScanning();
 

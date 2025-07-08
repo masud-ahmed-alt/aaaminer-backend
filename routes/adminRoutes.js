@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    addRedeemCode,
     adminLogin, adminLogout, adminProfile, adminRegister, allUsers,
     bulkRedeemAction,
     createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
@@ -56,5 +57,9 @@ router.put("/user-ban-action/:userId", isAdmin, userBanActions);
 
 router.get("/top-ten-user", isAdmin, setTopTenUser)
 router.delete("/delete-request/:id", isAdmin, withdrawRequestDelete)
+
+
+// Redeem Code 
+router.post("/add-redeem-code", isAdmin, addRedeemCode)
 
 export default router;
