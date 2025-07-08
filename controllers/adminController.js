@@ -85,14 +85,28 @@ export const adminLogout = catchAsyncError(async (req, res, next) => {
 
 
 export const allUsers = catchAsyncError(async (req, res, next) => {
-    const users = await User.find()
-        .select("name username email walletPoints isverified isBanned createdAt")
-        .sort("-createdAt")
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 20
+    const skip = (page - 1) * limit
+
+    const [users, total] = await Promise.all([
+        User.find()
+            .select("name username email walletPoints isverified isBanned createdAt")
+            .sort("-createdAt")
+            .skip(skip)
+            .limit(limit),
+        User.countDocuments()
+    ])
+
     res.status(200).json({
         success: true,
+        totalUsers: total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
         users
     })
 })
+
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
     const { id } = req.params
