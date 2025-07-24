@@ -56,7 +56,7 @@ router.get("/get-banned-user", isAdmin, getBannedUser);
 router.put("/user-ban-action/:userId", isAdmin, userBanActions);
 
 router.get("/top-ten-user", isAdmin, setTopTenUser)
-router.delete("/delete-request/:id", isAdmin, withdrawRequestDelete)
+router.delete("/delete-request", isAdmin, withdrawRequestDelete)
 
 
 // Redeem Code 

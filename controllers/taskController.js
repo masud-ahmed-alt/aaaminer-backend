@@ -266,13 +266,22 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
 
 export const getCarousal = catchAsyncError(async (req, res, next) => {
   const carousal = await Carousel.find().select("url").sort("-createdAt");
-  const baseUrl = `${req.protocol}://${req.get('host')}/`;
+
+  const host = req.get('host');
+  const hostname = host.split(':')[0];
+
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isIp = /^[0-9.]+$/.test(hostname);
+
+  const baseUrl = `${req.protocol}://${host}${(isLocal || isIp) ? '/' : '/api'}`;
   const updatedCarousal = carousal.map(item => ({
     id: item._id,
     url: `${baseUrl}${item.url}`
   }));
+
   res.status(200).json({
     success: true,
     carousal: updatedCarousal,
   });
 });
+

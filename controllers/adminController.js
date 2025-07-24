@@ -15,6 +15,7 @@ import { banMailMsg } from '../utils/banMessage.js';
 import { unbanMailMsg } from '../utils/unbanMessage.js';
 import { compare } from 'bcrypt';
 import RedeemCode from '../models/RedeemCode.js';
+import mongoose from "mongoose";
 
 const activeUsers = new Set();
 
@@ -85,14 +86,27 @@ export const adminLogout = catchAsyncError(async (req, res, next) => {
 
 
 export const allUsers = catchAsyncError(async (req, res, next) => {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const skip = (page - 1) * limit;
+
+    const totalUsers = await User.countDocuments();
+
     const users = await User.find()
-        .select("name username email walletPoints isverified isBanned createdAt")
+        .select("name username email walletPoints isverified isBanned country inreview createdAt")
         .sort("-createdAt")
+        .skip(skip)
+        .limit(limit);
+
     res.status(200).json({
         success: true,
+        totalUsers,
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
         users
-    })
-})
+    });
+});
+
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
     const { id } = req.params
@@ -624,10 +638,6 @@ export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-
-
-
 export const setTopTenUser = catchAsyncError(async (req, res, next) => {
     await TopTenUsers.deleteMany();
     const topTenUsers = await User.find({
@@ -674,25 +684,37 @@ export const scanUser = async () => {
     }
 }
 
-
 export const withdrawRequestDelete = catchAsyncError(async (req, res, next) => {
-    const { id } = req.params;
+    const { ids } = req.body;
 
-    if (!id) {
-        return next(new ErrorHandler("Please select redeem ID", 400));
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return next(new ErrorHandler("Please provide at least one redeem ID in an array.", 400));
     }
 
-    const result = await Withdraw.findByIdAndDelete(id);
+    // Validate IDs (optional but recommended)
+    const validIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
 
-    if (!result) {
-        return next(new ErrorHandler("Request not found.", 404));
+    if (validIds.length === 0) {
+        return next(new ErrorHandler("No valid withdraw IDs provided.", 400));
     }
+
+    // Find which IDs actually exist
+    const existingDocs = await Withdraw.find({ _id: { $in: validIds } }).select("_id");
+    const existingIds = existingDocs.map(doc => doc._id.toString());
+
+    const notFoundIds = validIds.filter(id => !existingIds.includes(id));
+
+    // Delete only existing ones
+    const result = await Withdraw.deleteMany({ _id: { $in: existingIds } });
 
     res.status(200).json({
         success: true,
-        message: "Withdraw request deleted successfully."
+        message: `${result.deletedCount} withdraw request(s) deleted successfully.`,
+        deletedCount: result.deletedCount,
+        notFoundIds: notFoundIds
     });
 });
+
 
 
 export const addRedeemCode = catchAsyncError(async (req, res, next) => {
@@ -705,17 +727,22 @@ export const addRedeemCode = catchAsyncError(async (req, res, next) => {
   const codeDocs = [];
 
   for (const item of redeemCodeList) {
-    const { redeemCode, amount } = item;
+    const { redeemCode, amount, type } = item;
 
-    if (!redeemCode || redeemCode.trim() === "" || !amount || isNaN(amount)) {
+    if (
+      !redeemCode || redeemCode.trim() === "" ||
+      !amount || isNaN(amount) ||
+      !type || typeof type !== "string" || type.trim() === ""
+    ) {
       return next(
-        new ErrorHandler("Each item must contain a valid redeemCode and numeric amount", 400)
+        new ErrorHandler("Each item must contain a valid redeemCode, numeric amount, and type: ['0':Amazon Gift Code. '1': Google Play Voucher ]", 400)
       );
     }
 
     codeDocs.push({
       code: redeemCode.trim(),
       amount: Number(amount),
+      type: type.trim(),
     });
   }
 

@@ -3,6 +3,7 @@ import Withdraw from "../models/Withdraw.js";
 import RedeemCodes from "../models/RedeemCode.js";
 
 export const instantRedeemCron = () => {
+  // Run every 30 seconds
   cron.schedule("*/30 * * * * *", instantRedeem, {
     timezone: "Asia/Kolkata",
   });
@@ -10,57 +11,58 @@ export const instantRedeemCron = () => {
 
 const instantRedeem = async () => {
   try {
-    // Fetch processing withdraws and populate user info
-    const withdrawRequests = await Withdraw.find({
-      status: "processing",
-    }).populate({
+    // Step 1: Get all processing withdraws with user info
+    const withdrawRequests = await Withdraw.find({ status: "processing" }).populate({
       path: "user",
       select: "inreview",
     });
 
-    // Filter out withdraws where user is under review
+    // Step 2: Filter withdraws where user is not under review
     const filteredWithdraws = withdrawRequests.filter(
       (req) => req.user && req.user.inreview === false
     );
-    if (filteredWithdraws.length === 0) {
-      return;
-    }
 
-    // Fetch all unused redeem codes
+    if (filteredWithdraws.length === 0) return;
+
+    // Step 3: Get all unused redeem codes
     const availableCodes = await RedeemCodes.find({ is_used: false });
 
-    if (availableCodes.length === 0) {
-      return;
-    }
+    if (availableCodes.length === 0) return;
 
-    // Group redeem codes by amount
-    const codeMap = new Map(); // { amount: [redeemCode1, redeemCode2, ...] }
+    // Step 4: Group redeem codes by "amount-type" (e.g., "100-0")
+    const codeMap = new Map();
     for (const code of availableCodes) {
-      if (!codeMap.has(code.amount)) {
-        codeMap.set(code.amount, []);
+      const key = `${code.amount}-${code.type}`; // type: "0" or "1"
+      if (!codeMap.has(key)) {
+        codeMap.set(key, []);
       }
-      codeMap.get(code.amount).push(code);
+      codeMap.get(key).push(code);
     }
 
+    // Step 5: Match withdraw requests with redeem codes
     for (const request of filteredWithdraws) {
-      const codeList = codeMap.get(request.amount);
+      const amount = request.amount;
+      const type = request.redeemOption; // should be "0" or "1"
+
+      const key = `${amount}-${type}`;
+      const codeList = codeMap.get(key);
 
       if (!codeList || codeList.length === 0) {
-        continue;
+        continue; // No matching code available
       }
 
-      const redeemCode = codeList.shift(); // use the first matching code
+      const redeemCode = codeList.shift(); 
 
-      // Update withdraw
+      // Update withdraw request
       request.voucher = redeemCode.code;
       request.status = "success";
       await request.save();
 
-      // Update redeem code
+      // Mark redeem code as used
       redeemCode.is_used = true;
       await redeemCode.save();
     }
   } catch (err) {
-    // Handle silently or log if needed
+    console.error("Instant Redeem Cron Error:", err.message);
   }
 };

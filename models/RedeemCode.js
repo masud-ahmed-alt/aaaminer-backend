@@ -10,6 +10,10 @@ const RedeemCodeSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+     type: {
+      type: String,
+      required: true,
+    },
     is_used: {
       type: Boolean,
       required: true,
