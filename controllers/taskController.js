@@ -273,7 +273,7 @@ export const getCarousal = catchAsyncError(async (req, res, next) => {
   const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
   const isIp = /^[0-9.]+$/.test(hostname);
 
-  const baseUrl = `${req.protocol}://${host}${(isLocal || isIp) ? '/' : '/api'}`;
+  const baseUrl = `${req.protocol}://${host}${(isLocal || isIp) ? '/' : '/api/'}`;
   const updatedCarousal = carousal.map(item => ({
     id: item._id,
     url: `${baseUrl}${item.url}`
