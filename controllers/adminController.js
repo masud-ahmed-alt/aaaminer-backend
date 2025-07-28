@@ -90,9 +90,25 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 50;
     const skip = (page - 1) * limit;
 
-    const totalUsers = await User.countDocuments();
+    // Search parameter
+    const search = req.query.search ? req.query.search.trim() : "";
 
-    const users = await User.find()
+    // Build search filter
+    const searchFilter = search
+        ? {
+              $or: [
+                  { name: { $regex: search, $options: "i" } },
+                  { username: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+              ],
+          }
+        : {};
+
+    // Get total count with filter
+    const totalUsers = await User.countDocuments(searchFilter);
+
+    // Fetch users with filter
+    const users = await User.find(searchFilter)
         .select("name username email walletPoints isverified isBanned country inreview createdAt")
         .sort("-createdAt")
         .skip(skip)
@@ -103,9 +119,10 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
         totalUsers,
         currentPage: page,
         totalPages: Math.ceil(totalUsers / limit),
-        users
+        users,
     });
 });
+
 
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
