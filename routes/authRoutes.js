@@ -23,7 +23,7 @@ import {
 const router = express.Router();
 
 // Register a new user
-router.post("/register", signupRequestLimiter, register);
+router.post("/register", register);
 
 // Login a user
 router.post("/login", login);
