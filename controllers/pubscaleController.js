@@ -10,17 +10,12 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Missing parameters", 400));
   }
 
-  console.log("Received callback with parameters:", {
-    value,
-  });
-
   const template = `${process.env.PUBSCALE_SECRET_KEY}.${user_id}.${Math.trunc(
     Number(value)
   )}.${token}`;
   const hash = crypto.createHash("md5").update(template).digest("hex");
 
   if (hash.toLowerCase() !== signature.toLowerCase()) {
-    console.error("Invalid signature", signature, "Expected:", hash);
     return next(new ErrorHandler("Invalid signature", 403));
   }
 
@@ -30,7 +25,6 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
     { new: true }
   );
 
-  console.log("Updated user:", updatedUser);
   if (!updatedUser) {
     return next(new ErrorHandler("User not found", 404));
   }
@@ -38,9 +32,5 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Wallet points updated successfully",
-    user: {
-      id: updatedUser._id,
-      walletPoints: updatedUser.walletPoints,
-    },
   });
 });
