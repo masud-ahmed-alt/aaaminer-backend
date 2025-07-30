@@ -30,6 +30,7 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
     { new: true }
   );
 
+  console.log("Updated user:", updatedUser);
   if (!updatedUser) {
     return next(new ErrorHandler("User not found", 404));
   }
