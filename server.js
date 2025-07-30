@@ -13,6 +13,7 @@ import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import pubScaleRoutes from "./routes/pubscaleRoutes.js";
 import { homePage } from "./utils/homePage.js";
 import { instantRedeemCron } from "./automation/redeemAuto.js";
 
@@ -74,6 +75,7 @@ app.use((req, res, next) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/offers", pubScaleRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);
