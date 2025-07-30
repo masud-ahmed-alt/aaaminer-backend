@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import { ErrorHandler } from "../utils/utility.js";
 
-const PUBSCALE_SECRET_KEY = "1cfb01d1-0a85-4910-b6af-81ff2872a06b";
+
 
 export const handleCallback = catchAsyncError(async (req, res, next) => {
   const { user_id, value, token, signature } = req.query;
@@ -13,7 +13,7 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
   }
 
   // Generate and validate signature
-  const template = `${PUBSCALE_SECRET_KEY}.${user_id}.${Math.trunc(
+  const template = `${process.env.PUBSCALE_SECRET_KEY}.${user_id}.${Math.trunc(
     Number(value)
   )}.${token}`;
   const hash = crypto.createHash("md5").update(template).digest("hex");
