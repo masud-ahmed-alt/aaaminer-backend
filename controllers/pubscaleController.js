@@ -34,3 +34,4 @@ export const handleCallback = catchAsyncError(async (req, res, next) => {
     message: "Wallet points updated successfully",
   });
 });
+
