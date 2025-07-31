@@ -10,9 +10,6 @@ const getClientIp = (req, res) => {
   if (ip.startsWith("::ffff:")) ip = ip.slice(7);
   if (ip === "::1") ip = "127.0.0.1";
 
-  console.log('====================================');
-  console.log(`Client IP: ${ip}`);
-  console.log('====================================');
   return ip;
 };
 

@@ -16,7 +16,7 @@ import {
 } from "../controllers/authController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
 import { createRateLimiter } from "../microservices/apiLimiter.js";
-import { setDeviceId } from "../middlewares/deviceIdMiddleware.js";
+
 
 const router = express.Router();
 
@@ -27,7 +27,6 @@ router.post(
     max: 5,
     message: "Too many registration attempts. Please try again later.",
   }),
-  setDeviceId,
   register
 );
 
