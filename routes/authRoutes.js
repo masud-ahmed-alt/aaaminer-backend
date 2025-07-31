@@ -35,15 +35,14 @@ router.get("/myvoucher", isAuthenticated, myVouchers);
 
 router.post(
   "/send-otp-email",
-  otpRequestLimiter,
   isAuthenticated,
   verifyEmailSendOtp
 );
 router.post("/verify-email", isAuthenticated, verifyEmail);
 router.get("/get-home-notification", getHomeNotification);
 
-router.post("/send-otp-password", otpRequestLimiter, forgotPassSendOtp);
-router.post("/recovery-password", otpRequestLimiter, passwordRecovery);
+router.post("/send-otp-password", forgotPassSendOtp);
+router.post("/recovery-password", passwordRecovery);
 
 router.post("/update-profile", isAuthenticated, updateProfile);
 router.post("/change-password", isAuthenticated, changePassword);
