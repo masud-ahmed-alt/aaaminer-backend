@@ -13,6 +13,8 @@ import {
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 
+const redeemPaused = true;
+
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
   let referal = req.body.referal;
@@ -397,7 +399,7 @@ export const checkRedeemEligibility = catchAsyncError(
 // Withdraw functionalities
 export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const user = req.user;
-  const { wallet, option = 0 } = req.body; 
+  const { wallet, option = 0 } = req.body;
 
   const userData = await User.findById(user);
   if (!userData) return next(new ErrorHandler("User not found", 404));
@@ -449,7 +451,21 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   } else if (option === 1 || option === "1") {
     redeemName = "Google Play voucher";
   } else {
-    return next(new ErrorHandler("Invalid option. Use 0 for Amazon, 1 for Google Play.", 400));
+    return next(
+      new ErrorHandler(
+        "Invalid option. Use 0 for Amazon, 1 for Google Play.",
+        400
+      )
+    );
+  }
+
+  if (redeemPaused) {
+    return next(
+      new ErrorHandler(
+        "Redemption is temporarily paused. Please try again shortly.",
+        400
+      )
+    );
   }
 
   const amount = wallet * 0.001;
@@ -458,7 +474,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   await Withdraw.create({
     user: user,
     name: redeemName,
-    redeemOption:option.toString(),
+    redeemOption: option.toString(),
     amount,
     points: wallet,
   });
@@ -471,4 +487,3 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     message: "Withdrawal requested",
   });
 });
-
