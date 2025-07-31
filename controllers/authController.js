@@ -462,7 +462,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   if (redeemPaused) {
     return next(
       new ErrorHandler(
-        "Redemption is temporarily paused. Please try again shortly.",
+        "Redemption is temporarily paused. Please try later",
         400
       )
     );
