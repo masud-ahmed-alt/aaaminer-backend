@@ -29,7 +29,8 @@
     "node-telegram-bot-api": "^0.63.0",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.9.0"
