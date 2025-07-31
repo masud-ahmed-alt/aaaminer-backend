@@ -15,15 +15,19 @@ import {
   checkRedeemEligibility,
 } from "../controllers/authController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
-import {
-  otpRequestLimiter,
-  signupRequestLimiter,
-} from "../microservices/apiLimiter.js";
+import { createRateLimiter } from "../microservices/apiLimiter.js";
 
 const router = express.Router();
 
 // Register a new user
-router.post("/register", register);
+router.post(
+  "/register",
+  createRateLimiter({
+    max: 5,
+    message: "Too many registration attempts. Please try again later.",
+  }),
+  register
+);
 
 // Login a user
 router.post("/login", login);
@@ -35,13 +39,24 @@ router.get("/myvoucher", isAuthenticated, myVouchers);
 
 router.post(
   "/send-otp-email",
+  createRateLimiter({
+    max: 3,
+    message: "Too many attempts. Please try again later.",
+  }),
   isAuthenticated,
   verifyEmailSendOtp
 );
 router.post("/verify-email", isAuthenticated, verifyEmail);
 router.get("/get-home-notification", getHomeNotification);
 
-router.post("/send-otp-password", forgotPassSendOtp);
+router.post(
+  "/send-otp-password",
+  createRateLimiter({
+    max: 3,
+    message: "Too many attempts. Please try again later.",
+  }),
+  forgotPassSendOtp
+);
 router.post("/recovery-password", passwordRecovery);
 
 router.post("/update-profile", isAuthenticated, updateProfile);
