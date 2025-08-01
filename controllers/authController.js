@@ -13,7 +13,7 @@ import {
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 
-const redeemPaused = true;
+const redeemPaused = false;
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
