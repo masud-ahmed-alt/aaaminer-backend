@@ -4,7 +4,7 @@ import { generateDailyTasks, generateScratchCard } from '../controllers/taskCont
 
 
 export const taskCron = () => {
-  cron.schedule('0 */4 * * *', generateDailyTasks, {
+  cron.schedule('0 */3 * * *', generateDailyTasks, {
     timezone: "Asia/Kolkata",
   });
 };
