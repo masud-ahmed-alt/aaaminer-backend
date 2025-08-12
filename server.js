@@ -15,6 +15,7 @@ import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import pubScaleRoutes from "./routes/pubscaleRoutes.js";
 import { homePage } from "./utils/homePage.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 import { instantRedeemCron } from "./automation/redeemAuto.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -76,6 +77,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/offers", pubScaleRoutes);
+app.use("/api/v1/settings", settingsRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);

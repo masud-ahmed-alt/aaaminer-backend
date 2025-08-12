@@ -4,6 +4,7 @@ import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import HomeNotification from "../models/HomeNotification.js";
 import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
+import { getRedeemPaused } from "../config/settings.js";
 import {
   extractName,
   generateUsername,
@@ -12,8 +13,6 @@ import {
   setAndSendOTP,
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
-
-const redeemPaused = true;
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -459,7 +458,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  if (redeemPaused) {
+  if (getRedeemPaused()) {
     return next(
       new ErrorHandler(
         "Redemption is temporarily paused. Please try later",
