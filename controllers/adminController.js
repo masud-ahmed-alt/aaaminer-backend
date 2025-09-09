@@ -511,6 +511,40 @@ export const userBanActions = catchAsyncError(async (req, res, next) => {
 });
 
 
+export const userReviewActions = catchAsyncError(async (req, res, next) => {
+    try {   
+        const { userId } = req.params;
+        const { action } = req.body;
+
+        if (!userId)
+            return next(new ErrorHandler("User ID is required", 400));
+
+        if (!["hold", "unhold"].includes(action))
+            return next(new ErrorHandler("Please enter a valid action [eg: hold, unhold]", 400));
+
+        const user = await User.findById(userId);
+        if (!user)
+            return next(new ErrorHandler("User not found", 404));
+
+        const shouldHold = action === "hold";
+
+        if (user.inreview === shouldHold)
+            return next(new ErrorHandler(`User is already ${shouldHold ? "on hold" : "not on hold"}`, 400));
+
+        user.inreview = shouldHold;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: `User is now ${shouldHold ? "on hold" : "no longer on hold"}`,
+        });
+    } catch (error) {
+        next(error);    
+    }
+});
+
+
+
 export const withdrawHistory = catchAsyncError(async (req, res, next) => {
     const { status } = req.query;
     if (!status) return next(new ErrorHandler("Please select withdraw status. e.g: [success, processing, rejected]"));
@@ -691,16 +725,6 @@ export const setTopTenUser = catchAsyncError(async (req, res, next) => {
 
 
 
-export const scanUser = async () => {
-    const users = await findSuspectedUser();
-
-    for (const user of users) {
-        user.isBanned = true;
-        await user.save();
-        console.log(`${user.name} ban status ${user.isBanned} updated`);
-    }
-}
-
 export const withdrawRequestDelete = catchAsyncError(async (req, res, next) => {
     const { ids } = req.body;
 
@@ -770,3 +794,13 @@ export const addRedeemCode = catchAsyncError(async (req, res, next) => {
     message: `${insertedCodes.length} redeem code(s) added successfully`,
   });
 });
+
+export const scanUser = async () => {
+    const users = await findSuspectedUser();
+
+    for (const user of users) {
+        user.isBanned = true;
+        await user.save();
+        console.log(`${user.name} ban status ${user.isBanned} updated`);
+    }
+}

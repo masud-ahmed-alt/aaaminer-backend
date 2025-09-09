@@ -9,7 +9,7 @@ import {
     setTopTenUser,
     uploadCarousalImage,
     userBanActions,
-    userGrowData, withdrawHistory,
+    userGrowData, userReviewActions, withdrawHistory,
     withdrawRequestActions,
     withdrawRequestDelete
 } from "../controllers/adminController.js";
@@ -54,6 +54,7 @@ router.get("/get-single-user/:id", isAdmin, getSingleUser);
 router.get("/get-suspected-user", isAdmin, getSuspectedUser);
 router.get("/get-banned-user", isAdmin, getBannedUser);
 router.put("/user-ban-action/:userId", isAdmin, userBanActions);
+router.put("/user-review-action/:userId", isAdmin, userReviewActions);
 
 router.get("/top-ten-user", isAdmin, setTopTenUser)
 router.delete("/delete-request", isAdmin, withdrawRequestDelete)

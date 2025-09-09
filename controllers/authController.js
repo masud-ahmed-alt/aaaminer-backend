@@ -408,6 +408,8 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
+  if(userData.inreview)
+    return next(new ErrorHandler("Your profile is under review. You cannot redeem at this time.", 400));
 
   if (!userData.country)
     return next(
