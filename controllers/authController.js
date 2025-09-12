@@ -13,6 +13,7 @@ import {
   setAndSendOTP,
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
+import { da } from "@faker-js/faker";
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -408,8 +409,13 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
 
   if (userData.isBanned)
     return next(new ErrorHandler("You're not eligible to redeem", 400));
-  if(userData.inreview)
-    return next(new ErrorHandler("Your profile is under review. You cannot redeem at this time.", 400));
+  if (userData.inreview)
+    return next(
+      new ErrorHandler(
+        "Your profile is under review. You cannot redeem at this time.",
+        400
+      )
+    );
 
   if (!userData.country)
     return next(
@@ -487,4 +493,99 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Withdrawal requested",
   });
+});
+
+// Increase free spin limits
+export const increaseSpinLimits = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user;
+    if (!userId) {
+      return next(new ErrorHandler("Unauthorized access", 401));
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // If user still has unused free spins
+    if (user.freeSpinLimit > 0) {
+      return next(
+        new ErrorHandler("You still have free spins left to use!", 400)
+      );
+    }
+
+    // No daily spins left
+    if (user.dailySpinLimit <= 0) {
+      return next(
+        new ErrorHandler("You have reached the maximum daily spin limit.", 400)
+      );
+    }
+
+    let addedSpins = 0;
+
+    if (user.dailySpinLimit > 1) {
+      user.dailySpinLimit -= 2;
+      user.freeSpinLimit += 2;
+      addedSpins = 2;
+    } else if (user.dailySpinLimit === 1) {
+      user.dailySpinLimit -= 1;
+      user.freeSpinLimit += 1;
+      addedSpins = 1;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Congratulations! Free spin limits increased by ${addedSpins}!`,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// complete spin and deduct freeSpinLimit
+export const completeSpin = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user;
+    const { points } = req.body;
+    if (points === undefined || points === null) {
+      return next(new ErrorHandler("Points are required", 400));
+    }
+
+    if (!userId) {
+      return next(new ErrorHandler("Unauthorized access", 401));
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+    if (user.freeSpinLimit <= 0) {
+      return next(new ErrorHandler("No free spins left", 400));
+    }
+
+    var message =""
+    if (points >= 10000) {
+      message = `Congratulations! You have won the jackpot!`;
+    } 
+    else if (points > 0) {
+      message = `Congratulations! You have won ${points} points`;
+    } 
+    else {
+      message = "Better luck next time!";
+    }
+
+    user.walletPoints += points;
+    user.freeSpinLimit -= 1;
+    user.dailySpinLimit -= 1;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      points,
+      message
+    });
+  } catch (error) {
+    next(error);
+  }
 });

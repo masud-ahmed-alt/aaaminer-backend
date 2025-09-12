@@ -6,7 +6,7 @@ import http from "http";
 import path, { dirname } from "path";
 import { Server } from "socket.io";
 import { fileURLToPath } from "url";
-import { scratchCardCron, taskCron, usersScanning } from "./automation/cron.js";
+import { resetSpinLimitsCron, scratchCardCron, taskCron, usersScanning } from "./automation/cron.js";
 import connectDB from "./config/db.js";
 import { setupSocketEvents } from "./controllers/adminController.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
@@ -51,6 +51,7 @@ taskCron();
 // instantRedeemCron()
 scratchCardCron();
 usersScanning();
+// resetSpinLimitsCron();
 
 app.use(express.json());
 app.use(cookieParser());

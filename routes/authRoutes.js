@@ -13,9 +13,12 @@ import {
   updateProfile,
   changePassword,
   checkRedeemEligibility,
+  increaseSpinLimits,
+  completeSpin,
 } from "../controllers/authController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
 import { createRateLimiter } from "../microservices/apiLimiter.js";
+import { resetSpinLimits } from "../utils/features.js";
 
 
 const router = express.Router();
@@ -69,4 +72,6 @@ router.get(
   checkRedeemEligibility
 );
 
+router.get("/add-free-spins", isAuthenticated, increaseSpinLimits)
+router.post("/complete-spin", isAuthenticated,completeSpin);
 export default router;

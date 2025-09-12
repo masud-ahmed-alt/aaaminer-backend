@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { scanUser } from '../controllers/adminController.js';
 import { generateDailyTasks, generateScratchCard } from '../controllers/taskController.js';
+import { resetSpinLimits } from '../utils/features.js';
 
 
 export const taskCron = () => {
@@ -20,6 +21,20 @@ export const usersScanning = () => {
     timezone: "Asia/Kolkata",
   });
 };
+// reset daily and free spin limits at 30 sec for testing purpose
+export const resetSpinLimitsCron = () => {
+  cron.schedule('0 0 * * *', resetSpinLimits, {
+    timezone: "Asia/Kolkata",
+  });
+};
+
+
+
+// export const resetSpinLimitsCron = () => {
+//   cron.schedule('0 0 * * *', resetSpinLimits, {
+//     timezone: "Asia/Kolkata",
+//   });
+// };
 
 
 

@@ -15,6 +15,8 @@ const userSchema = new mongoose.Schema({
   otpExpiry: { type: Date, select: false },
   isverified: { type: Boolean, required: true, default: false },
   isBanned: { type: Boolean, required: true, default: false },
+  freeSpinLimit: { type: Number, default: 3 },
+  dailySpinLimit: { type: Number, default: 17 },
   inreview: { type: Boolean, default: false },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
 }, {
