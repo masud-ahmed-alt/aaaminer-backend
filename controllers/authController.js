@@ -578,7 +578,6 @@ export const completeSpin = catchAsyncError(async (req, res, next) => {
 
     user.walletPoints += points;
     user.freeSpinLimit -= 1;
-    user.dailySpinLimit -= 1;
     await user.save();
     res.status(200).json({
       success: true,
