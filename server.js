@@ -51,7 +51,7 @@ taskCron();
 // instantRedeemCron()
 scratchCardCron();
 usersScanning();
-// resetSpinLimitsCron();
+resetSpinLimitsCron();
 
 app.use(express.json());
 app.use(cookieParser());
