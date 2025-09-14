@@ -566,11 +566,11 @@ export const completeSpin = catchAsyncError(async (req, res, next) => {
     }
 
     var message =""
-    if (points >= 10000) {
-      message = `Congratulations! You have won the jackpot!`;
+    if (points >= 5000) {
+      message = `🎉Congratulations!🎉 \nYou have won the jackpot!`;
     } 
     else if (points > 0) {
-      message = `Congratulations! You have won ${points} points`;
+      message = `🎉Congratulations!🎉`;
     } 
     else {
       message = "Better luck next time!";
