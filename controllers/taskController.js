@@ -1,12 +1,16 @@
-import { catchAsyncError } from '../middlewares/errorMiddleware.js';
-import ScratchCard from '../models/ScratchCard.js';
-import Task from '../models/Task.js';
-import User from '../models/User.js';
-import { getActivityLog, getAvailableScratchCard, getAvailableTasks, sendTelegramMessage } from '../utils/features.js';
-import { ErrorHandler } from '../utils/utility.js';
+import { catchAsyncError } from "../middlewares/errorMiddleware.js";
+import ScratchCard from "../models/ScratchCard.js";
+import Task from "../models/Task.js";
+import User from "../models/User.js";
+import {
+  getActivityLog,
+  getAvailableScratchCard,
+  getAvailableTasks,
+  sendTelegramMessage,
+} from "../utils/features.js";
+import { ErrorHandler } from "../utils/utility.js";
 import Carousel from "../models/Carousel.js";
-import TopTenUsers from '../models/TopTenUsers.js';
-
+import TopTenUsers from "../models/TopTenUsers.js";
 
 const createTask = async () => {
   try {
@@ -20,7 +24,7 @@ const createTask = async () => {
       "Win the battle",
       "Reach the next stage",
       "Complete the challenge",
-      "Master the arena"
+      "Master the arena",
     ];
 
     // Shuffle task name templates to ensure uniqueness
@@ -28,20 +32,19 @@ const createTask = async () => {
 
     const tasks = [];
 
-    // Add 1 special task with rewardPoints between 95–105
-    const specialTask = {
-      taskName: shuffledTemplates[0],
-      rewardPoints: Math.floor(Math.random() * (105 - 95 + 1)) + 95,
-    };
-    tasks.push(specialTask);
+    // Random index (0–9) for the "special" task
+    const specialIndex = Math.floor(Math.random() * 10);
 
-    // Add 9 tasks with rewardPoints between 50–90
-    for (let i = 1; i <= 9; i++) {
-      const task = {
+    for (let i = 0; i < 10; i++) {
+      const rewardPoints =
+        i === specialIndex
+          ? Math.floor(Math.random() * (95 - 90 + 1)) + 90 // one task: 90–95
+          : Math.floor(Math.random() * (50 - 40 + 1)) + 40; // others: 40–50
+
+      tasks.push({
         taskName: shuffledTemplates[i],
-        rewardPoints: Math.floor(Math.random() * (90 - 50 + 1)) + 50,
-      };
-      tasks.push(task);
+        rewardPoints,
+      });
     }
 
     // Insert tasks into DB
@@ -52,21 +55,20 @@ const createTask = async () => {
   }
 };
 
-
 const createScratchCard = async () => {
   try {
-    const randomPoints = Array.from({ length: 3 }, () =>
-      Math.floor(Math.random() * 81)
-    )
-    const pointsArray = [0, ...randomPoints];
-    const shuffledPoints = pointsArray.sort(() => Math.random() - 0.5);
+    // Generate 4 random points between 30–40
+    const randomPoints = Array.from(
+      { length: 4 },
+      () => Math.floor(Math.random() * (40 - 30 + 1)) + 30
+    );
 
+    // Shuffle the points for randomness
+    const shuffledPoints = randomPoints.sort(() => Math.random() - 0.5);
 
     const scratchCards = shuffledPoints.map((points) => ({
       points,
-      desc: points === 0
-        ? "OOPS! Better luck next time!"
-        : `🎉Congratulations, you have just won ${points} points!🎉`,
+      desc: `🎉 Congratulations, you have just won ${points} points! 🎉`,
     }));
 
     await ScratchCard.insertMany(scratchCards);
@@ -74,8 +76,7 @@ const createScratchCard = async () => {
   } catch (error) {
     getActivityLog(`Failed to create scratch card.`);
   }
-
-}
+};
 
 export const getRanking = catchAsyncError(async (req, res, next) => {
   try {
@@ -126,66 +127,74 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
 export const generateDailyTasks = catchAsyncError(async () => {
-  const task = await Task.find()
+  const task = await Task.find();
   if (task.length > 0) {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
-      console.log("Existing Task deleted")
-      await createTask()
+      console.log("Existing Task deleted");
+      await createTask();
     } else {
       console.log("No tasks to deleted");
     }
-  }
-  else if (task.length === 0) {
+  } else if (task.length === 0) {
     console.log("No existing tasks found. Creating new tasks...");
-    await createTask()
+    await createTask();
   }
 });
 
 export const generateScratchCard = catchAsyncError(async () => {
-  const scratchCards = await ScratchCard.find()
+  const scratchCards = await ScratchCard.find();
   if (scratchCards.length > 0) {
     const deleteScratchCard = await ScratchCard.deleteMany({});
     if (deleteScratchCard.deletedCount > 0) {
       console.log("Existing Scratch Cards deleted");
-      await createScratchCard()
+      await createScratchCard();
     } else {
       console.log("No Scratch Cards to delete");
     }
   } else if (scratchCards.length === 0) {
-    await createScratchCard()
+    await createScratchCard();
   }
 });
 
 export const getUserTasks = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user;
-    if (!userId) return next(new ErrorHandler('User ID is required', 400))
+    if (!userId) return next(new ErrorHandler("User ID is required", 400));
     const tasks = await getAvailableTasks(userId);
     if (!tasks || tasks.length === 0)
-      return next(new ErrorHandler("Congratulations! You have successfully completed all the tasks. Please comeback after sometimes!!!", 404))
+      return next(
+        new ErrorHandler(
+          "Congratulations! You have successfully completed all the tasks. Please comeback after sometimes!!!",
+          404
+        )
+      );
     res.status(200).json({ tasks });
   } catch (error) {
-    console.error('Error fetching user tasks');
-    return next(new ErrorHandler("Internal server error", 500))
+    console.error("Error fetching user tasks");
+    return next(new ErrorHandler("Internal server error", 500));
   }
-})
+});
 
 export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user;
-    if (!userId) return next(new ErrorHandler('User ID is required', 400))
+    if (!userId) return next(new ErrorHandler("User ID is required", 400));
     const scratchCard = await getAvailableScratchCard(userId);
     if (!scratchCard || scratchCard.length === 0)
-      return next(new ErrorHandler("You don't have any Scratch Cards right now, Please check after sometimes!", 404))
+      return next(
+        new ErrorHandler(
+          "You don't have any Scratch Cards right now, Please check after sometimes!",
+          404
+        )
+      );
     res.status(200).json({ scratchCard });
   } catch (error) {
-    console.error('Error fetching user scratchCard');
-    return next(new ErrorHandler("Internal server error", 500))
+    console.error("Error fetching user scratchCard");
+    return next(new ErrorHandler("Internal server error", 500));
   }
-})
+});
 
 export const completeTask = catchAsyncError(async (req, res, next) => {
   try {
@@ -197,7 +206,8 @@ export const completeTask = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Task not found", 404));
     }
 
-    const isTaskCompleted = Array.isArray(task.completedBy) && task.completedBy.includes(userId);
+    const isTaskCompleted =
+      Array.isArray(task.completedBy) && task.completedBy.includes(userId);
     if (isTaskCompleted) {
       return next(new ErrorHandler("Task already completed", 400));
     }
@@ -214,16 +224,16 @@ export const completeTask = catchAsyncError(async (req, res, next) => {
 
     await user.save();
     await task.save();
-    getActivityLog(user.name, `completed task, id: ${task.id}`)
+    getActivityLog(user.name, `completed task, id: ${task.id}`);
 
     res.status(200).json({
       success: true,
-      message: "Task completed successfully"
+      message: "Task completed successfully",
     });
   } catch (error) {
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
-})
+});
 
 export const completeScratchCard = catchAsyncError(async (req, res, next) => {
   try {
@@ -235,7 +245,9 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Scratch Card not found", 404));
     }
 
-    const isScratchCardCompleted = Array.isArray(scratchCard.completedBy) && scratchCard.completedBy.includes(userId);
+    const isScratchCardCompleted =
+      Array.isArray(scratchCard.completedBy) &&
+      scratchCard.completedBy.includes(userId);
     if (isScratchCardCompleted) {
       return next(new ErrorHandler("Scratch Card already completed", 400));
     }
@@ -247,36 +259,37 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
 
     user.walletPoints += scratchCard.points;
 
-    scratchCard.completedBy = Array.isArray(scratchCard.completedBy) ? scratchCard.completedBy : [];
+    scratchCard.completedBy = Array.isArray(scratchCard.completedBy)
+      ? scratchCard.completedBy
+      : [];
     scratchCard.completedBy.push(userId);
 
     await user.save();
     await scratchCard.save();
-    getActivityLog(user.name, `completed scratch card, id: ${scratchCard.id}`)
+    getActivityLog(user.name, `completed scratch card, id: ${scratchCard.id}`);
     res.status(200).json({
       success: true,
-      message: "Scratch Card completed successfully"
+      message: "Scratch Card completed successfully",
     });
   } catch (error) {
     console.error("Error completing Scratch Card:");
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
-})
-
+});
 
 export const getCarousal = catchAsyncError(async (req, res, next) => {
   const carousal = await Carousel.find().select("url").sort("-createdAt");
 
-  const host = req.get('host');
-  const hostname = host.split(':')[0];
+  const host = req.get("host");
+  const hostname = host.split(":")[0];
 
-  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
   const isIp = /^[0-9.]+$/.test(hostname);
 
-  const baseUrl = `${req.protocol}://${host}${(isLocal || isIp) ? '/' : '/api/'}`;
-  const updatedCarousal = carousal.map(item => ({
+  const baseUrl = `${req.protocol}://${host}${isLocal || isIp ? "/" : "/api/"}`;
+  const updatedCarousal = carousal.map((item) => ({
     id: item._id,
-    url: `${baseUrl}${item.url}`
+    url: `${baseUrl}${item.url}`,
   }));
 
   res.status(200).json({
@@ -284,4 +297,3 @@ export const getCarousal = catchAsyncError(async (req, res, next) => {
     carousal: updatedCarousal,
   });
 });
-

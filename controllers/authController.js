@@ -565,7 +565,7 @@ export const completeSpin = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("No free spins left", 400));
     }
 
-    if(points>=5000){
+    if(points>=3000){
         return next(new ErrorHandler("Something went wrong, Please try again leter", 400));
     }
 
