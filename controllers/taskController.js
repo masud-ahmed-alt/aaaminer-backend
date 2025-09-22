@@ -15,45 +15,38 @@ import TopTenUsers from "../models/TopTenUsers.js";
 const createTask = async () => {
   try {
     const taskNameTemplates = [
-      "Complete the level",
-      "Build your empire",
-      "Explore a new world",
-      "Collect power-ups",
-      "Access exclusive content",
-      "Finish the mission",
-      "Win the battle",
-      "Reach the next stage",
-      "Complete the challenge",
-      "Master the arena",
+      "Unlock hidden treasure",
+      "Defend your kingdom",
+      "Solve the puzzle quest",
+      "Conquer the battlefield",
+      "Upgrade your skills",
+      "Survive the challenge",
+      "Discover secret paths",
+      "Defeat the boss",
+      "Collect rare items",
+      "Rule the leaderboard",
     ];
 
-    // Shuffle task name templates to ensure uniqueness
     const shuffledTemplates = taskNameTemplates.sort(() => Math.random() - 0.5);
-
     const tasks = [];
-
-    // Random index (0–9) for the "special" task
     const specialIndex = Math.floor(Math.random() * 10);
 
     for (let i = 0; i < 10; i++) {
-      const rewardPoints =
-        i === specialIndex
-          ? Math.floor(Math.random() * (95 - 90 + 1)) + 90 // one task: 90–95
-          : Math.floor(Math.random() * (50 - 40 + 1)) + 40; // others: 40–50
-
+      const rewardPoints = Math.floor(Math.random() * (65 - 40 + 1)) + 40;
       tasks.push({
         taskName: shuffledTemplates[i],
         rewardPoints,
+        isSpecial: i === specialIndex,
       });
     }
 
-    // Insert tasks into DB
     await Task.insertMany(tasks);
     getActivityLog("New tasks generated successfully.");
   } catch (error) {
-    getActivityLog("Failed to generate new tasks");
+    getActivityLog("Failed to generate new tasks: " + error.message);
   }
 };
+
 
 const createScratchCard = async () => {
   try {
