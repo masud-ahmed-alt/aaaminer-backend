@@ -1,5 +1,5 @@
 // config/redeemConfig.js
-let redeemPaused = false; // default
+let redeemPaused = true; // default
 
 export const getRedeemPaused = () => redeemPaused;
 export const setRedeemPaused = (value) => {
