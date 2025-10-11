@@ -565,18 +565,18 @@ export const completeSpin = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("No free spins left", 400));
     }
 
-    if(points>=3000){
-        return next(new ErrorHandler("Something went wrong, Please try again leter", 400));
+    if (points >= 3000) {
+      return next(
+        new ErrorHandler("Something went wrong, Please try again leter", 400)
+      );
     }
 
-    var message =""
+    var message = "";
     if (points >= 5000) {
       message = `🎉Congratulations!🎉 \nYou have won the jackpot!`;
-    } 
-    else if (points > 0) {
+    } else if (points > 0) {
       message = `🎉Congratulations!🎉`;
-    } 
-    else {
+    } else {
       message = "Better luck next time!";
     }
 
@@ -586,7 +586,7 @@ export const completeSpin = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
       success: true,
       points,
-      message
+      message,
     });
   } catch (error) {
     next(error);
