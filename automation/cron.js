@@ -5,7 +5,7 @@ import { resetSpinLimits } from '../utils/features.js';
 
 
 export const taskCron = () => {
-  cron.schedule('0 */3 * * *', generateDailyTasks, {
+  cron.schedule('0 */2 * * *', generateDailyTasks, {
     timezone: "Asia/Kolkata",
   });
 };
