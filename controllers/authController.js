@@ -422,8 +422,8 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("Please update your country to make a redeem", 400)
     );
 
-  if (!wallet || userData.walletPoints < 10000)
-    return next(new ErrorHandler("Minimum redeem points is 10,000", 400));
+  if (!wallet || userData.walletPoints < 100000)
+    return next(new ErrorHandler("Minimum redeem points is 1,00,000", 400));
 
   if (userData.country !== "india") {
     const validPoints = new Set([500000, 1000000, 1500000]);
@@ -437,7 +437,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
       );
     }
   } else {
-    const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000]);
+    const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000, 150000, 200000]);
     if (!validPoints.has(wallet)) {
       return next(
         new ErrorHandler(
