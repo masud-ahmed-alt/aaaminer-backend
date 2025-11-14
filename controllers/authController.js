@@ -1,4 +1,3 @@
-import { compare } from "bcrypt";
 import bcrypt from "bcryptjs";
 import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import HomeNotification from "../models/HomeNotification.js";
@@ -119,7 +118,8 @@ export const login = catchAsyncError(async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
   if (!user) return next(new ErrorHandler("Invalid email or password", 401));
 
-  const isMatch = await compare(password, user.password);
+  // use bcryptjs consistently
+  const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401));
   getActivityLog(user.name, "Logged in");
   sendToken(res, user, 200, `Welcome  ${user.name}!`);
@@ -437,7 +437,9 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
       );
     }
   } else {
-    const validPoints = new Set([10000, 20000, 30000, 50000, 80000, 100000, 150000, 200000]);
+    const validPoints = new Set([
+      10000, 20000, 30000, 50000, 80000, 100000, 150000, 200000,
+    ]);
     if (!validPoints.has(wallet)) {
       return next(
         new ErrorHandler(

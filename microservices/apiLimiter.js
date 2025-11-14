@@ -25,7 +25,11 @@ export const createRateLimiter = ({
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req, res) => {
-      if (useUserIdIfAvailable && req.user?.id) return req.user.id;
+      if (useUserIdIfAvailable && req.user) {
+        // req.user may be a string id or an object
+        if (typeof req.user === "string") return req.user;
+        if (req.user.id) return req.user.id;
+      }
       if (req.device_id) return `device_${req.device_id}`;
       return `ip_${getClientIp(req, res)}`;
     },

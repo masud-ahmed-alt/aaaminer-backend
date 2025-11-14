@@ -31,32 +31,17 @@ const createTask = async () => {
     const shuffledTemplates = taskNameTemplates.sort(() => Math.random() - 0.5);
     const tasks = [];
 
-    // Pick one special index for isSpecial flag
-    const specialIndex = Math.floor(Math.random() * 10);
-
-    // Pick 2 unique random indexes for high-reward tasks
-    const highRewardIndexes = [];
-    while (highRewardIndexes.length < 2) {
-      const randomIndex = Math.floor(Math.random() * 10);
-      if (!highRewardIndexes.includes(randomIndex)) {
-        highRewardIndexes.push(randomIndex);
-      }
-    }
+    // No high-reward special tasks: all tasks use the standard reward range
 
     for (let i = 0; i < 10; i++) {
       let rewardPoints;
 
-      // Assign higher reward points (301–315) to 2 random tasks
-      if (highRewardIndexes.includes(i)) {
-        rewardPoints = Math.floor(Math.random() * (315 - 301 + 1)) + 301;
-      } else {
-        rewardPoints = Math.floor(Math.random() * (65 - 40 + 1)) + 40;
-      }
+      // Assign standard reward points (40–65) to every task
+      rewardPoints = Math.floor(Math.random() * (65 - 40 + 1)) + 40;
 
       tasks.push({
         taskName: shuffledTemplates[i],
         rewardPoints,
-        isSpecial: i === specialIndex,
       });
     }
 
@@ -66,8 +51,6 @@ const createTask = async () => {
     getActivityLog("Failed to generate new tasks: " + error.message);
   }
 };
-
-
 
 const createScratchCard = async () => {
   try {

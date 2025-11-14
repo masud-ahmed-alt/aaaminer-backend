@@ -9,23 +9,29 @@ import { getOTPMessage } from "./otpMessage.js";
 import User from "../models/User.js";
 
 const cookieOptions = {
-  maxAge: 15 * 24 * 60 * 60 * 100,
+  // milliseconds: 15 days
+  maxAge: 15 * 24 * 60 * 60 * 1000,
   sameSite: "none",
   httpOnly: true,
   secure: true,
 };
+
 const sendToken = (resp, user, code, message) => {
   const userWithoutPassword = user.toObject();
   delete userWithoutPassword.password;
 
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+  // Sign a short-lived token and set it as an httpOnly secure cookie.
+  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
+
+  // Do NOT include the token in the JSON body to avoid exposing it to JS.
   return resp
     .status(code)
     .cookie(process.env.COOKIE_NAME, token, cookieOptions)
     .json({
       success: true,
       user: userWithoutPassword,
-      token,
       message,
     });
 };
@@ -229,5 +235,5 @@ export {
   generateUsername,
   extractName,
   getActivityLog,
-  resetSpinLimits
+  resetSpinLimits,
 };

@@ -6,7 +6,12 @@ import http from "http";
 import path, { dirname } from "path";
 import { Server } from "socket.io";
 import { fileURLToPath } from "url";
-import { resetSpinLimitsCron, scratchCardCron, taskCron, usersScanning } from "./automation/cron.js";
+import {
+  resetSpinLimitsCron,
+  scratchCardCron,
+  taskCron,
+  usersScanning,
+} from "./automation/cron.js";
 import connectDB from "./config/db.js";
 import { setupSocketEvents } from "./controllers/adminController.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
@@ -24,23 +29,52 @@ const __dirname = dirname(__filename);
 const app = express();
 dotenv.config({ path: ".env" });
 
+// Build allowed origins, normalize by removing trailing slashes
 const allowedOrigins = [
   process.env.LOCALHOST,
   process.env.FRONTEND_URL1,
   process.env.FRONTEND_URL2,
-  null,
-];
+  process.env.ANDROID_APP_URL,
+]
+  .filter(Boolean) // remove null/undefined
+  .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
+
+const isDevelopment = process.env.NODE_ENV === "development";
+
+// console.log(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
+// console.log("CORS Allowed Origins:", allowedOrigins);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // For development, allow requests without origin (like from Android Emulator initial requests)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      // Remove trailing slash from origin for comparison
+      const normalizedOrigin = origin.replace(/\/$/, "");
+
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // In development, log and allow; in production, reject
+        if (isDevelopment) {
+          console.warn(
+            `CORS: Allowing non-allowed origin in development: ${origin}`
+          );
+          callback(null, true); // Allow in development for testing
+        } else {
+          console.warn(`CORS blocked origin: ${origin}`);
+          callback(new Error("Not allowed by CORS"));
+        }
       }
     },
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   })
 );
 
@@ -61,7 +95,14 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT"],
   },
 });
