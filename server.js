@@ -26,80 +26,97 @@ import { instantRedeemCron } from "./automation/redeemAuto.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
 dotenv.config({ path: ".env" });
 
-// Build allowed origins, normalize by removing trailing slashes
+const app = express();
+
+// FRONTEND ORIGINS (WEB ONLY)
 const allowedOrigins = [
   process.env.LOCALHOST,
   process.env.FRONTEND_URL1,
   process.env.FRONTEND_URL2
-]
-  .filter(Boolean) // remove null/undefined
-  .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
+].filter(Boolean);
 
-const isDevelopment = process.env.NODE_ENV === "development";
+// ENV
+const isProduction = process.env.NODE_ENV === "production";
 
-// console.log(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
-// console.log("CORS Allowed Origins:", allowedOrigins);
-
+// -------------------------------
+// FIXED CORS FOR ANDROID + WEB
+// -------------------------------
 app.use(
   cors({
     origin: function (origin, callback) {
-      // For development, allow requests without origin (like from Android Emulator initial requests)
+      // 1. Android native apps (Retrofit) => no origin
       if (!origin) {
-        callback(null, true);
-        return;
+        return callback(null, true);
       }
 
-      // Remove trailing slash from origin for comparison
-      const normalizedOrigin = origin.replace(/\/$/, "");
-
-      // Check if origin is in allowed list
-      if (allowedOrigins.includes(normalizedOrigin)) {
-        callback(null, true);
-      } else {
-        // In development, log and allow; in production, reject
-        if (isDevelopment) {
-          console.warn(
-            `CORS: Allowing non-allowed origin in development: ${origin}`
-          );
-          callback(null, true); // Allow in development for testing
-        } else {
-          console.warn(`CORS blocked origin: ${origin}`);
-          callback(new Error("Not allowed by CORS"));
-        }
+      // 2. Android WebView / ads => origin null or file://
+      if (origin === "null" || origin.startsWith("file://")) {
+        return callback(null, true);
       }
+
+      // 3. Normal browser request
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // 4. In development, allow everything
+      if (!isProduction) {
+        console.warn("CORS dev override:", origin);
+        return callback(null, true);
+      }
+
+      // 5. In production, block unknown origins
+      console.warn("CORS blocked:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 
-const dbURI = process.env.MONGO_URI;
-connectDB(dbURI);
+// -------------------------------
+// DATABASE
+// -------------------------------
+connectDB(process.env.MONGO_URI);
 
 taskCron();
-// instantRedeemCron()
 scratchCardCron();
 usersScanning();
 resetSpinLimitsCron();
+// instantRedeemCron();
 
+// -------------------------------
 app.use(express.json());
 app.use(cookieParser());
 app.set("trust proxy", true);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// -------------------------------
+// SOCKET.IO — MATCH SAME CORS RULES
+// -------------------------------
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      if (!origin || origin === "null" || origin.startsWith("file://")) {
+        return callback(null, true);
       }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      if (!isProduction) {
+        console.warn("SOCKET CORS dev override:", origin);
+        return callback(null, true);
+      }
+
+      console.warn("SOCKET CORS blocked:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT"],
@@ -111,35 +128,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// seedUsers(150)
-
-// Routes
+// -------------------------------
+// ROUTES
+// -------------------------------
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/offers", pubScaleRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 
-// Error Middleware
+// ERRORS
 app.use(errorMiddleware);
 
-// Setup socket events
 setupSocketEvents(io);
 
-// Handle uncaught exceptions and rejections
+// -------------------------------
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception: ", err);
+  console.error("Uncaught Exception:", err);
   process.exit(1);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at: ", promise, "reason: ", reason);
+  console.error("Unhandled Rejection:", promise, "reason:", reason);
   process.exit(1);
 });
 
+// -------------------------------
 app.get("/", (req, resp) => {
   resp.send(homePage());
 });
 
+// -------------------------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
