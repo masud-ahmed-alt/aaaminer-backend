@@ -33,8 +33,7 @@ dotenv.config({ path: ".env" });
 const allowedOrigins = [
   process.env.LOCALHOST,
   process.env.FRONTEND_URL1,
-  process.env.FRONTEND_URL2,
-  process.env.ANDROID_APP_URL,
+  process.env.FRONTEND_URL2
 ]
   .filter(Boolean) // remove null/undefined
   .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
