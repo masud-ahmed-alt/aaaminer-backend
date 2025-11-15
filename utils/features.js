@@ -20,19 +20,20 @@ const sendToken = (resp, user, code, message) => {
   const userWithoutPassword = user.toObject();
   delete userWithoutPassword.password;
 
-  // Sign a short-lived token and set it as an httpOnly secure cookie.
+  // Create JWT
   const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
 
-  // Do NOT include the token in the JSON body to avoid exposing it to JS.
+  // Send token both as cookie (for browser) and JSON (for mobile apps)
   return resp
     .status(code)
     .cookie(process.env.COOKIE_NAME, token, cookieOptions)
     .json({
       success: true,
-      user: userWithoutPassword,
       message,
+      token, // IMPORTANT FOR ANDROID
+      user: userWithoutPassword,
     });
 };
 

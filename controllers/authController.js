@@ -121,7 +121,6 @@ export const login = catchAsyncError(async (req, res, next) => {
   // use bcryptjs consistently
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401));
-  getActivityLog(user.name, "Logged in");
   sendToken(res, user, 200, `Welcome  ${user.name}!`);
 });
 
