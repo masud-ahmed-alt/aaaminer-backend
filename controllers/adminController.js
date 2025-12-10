@@ -17,7 +17,6 @@ import {
   storage,
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
-import TopTenUsers from "../models/TopTenUsers.js";
 import { banMailMsg } from "../utils/banMessage.js";
 import { unbanMailMsg } from "../utils/unbanMessage.js";
 import bcrypt from "bcryptjs";
@@ -46,7 +45,13 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   if (!isMatch)
     return next(new ErrorHandler("Invalid admin code or password", 401));
 
-  sendToken(res, admin, 200, `Welcome  ${admin.adminName}!`);
+  // Handle case where admin.adminName might be undefined
+  const welcomeMessage = admin.adminName ? `Welcome  ${admin.adminName}!` : "Welcome!";
+  try {
+    sendToken(res, admin, 200, welcomeMessage);
+  } catch (error) {
+    return next(new ErrorHandler("Failed to generate authentication token", 500));
+  }
 });
 
 export const adminRegister = catchAsyncError(async (req, res, next) => {
@@ -131,6 +136,45 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
     currentPage: page,
     totalPages: Math.ceil(totalUsers / limit),
     users,
+  });
+});
+
+export const updateUser = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const { name, username, email, phone, country, walletPoints, wallet, isverified, isBanned, inreview, freeSpinLimit, dailySpinLimit } = req.body;
+
+  if (!id) return next(new ErrorHandler("Please provide user id", 400));
+
+  const user = await User.findById(id);
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  // Update fields if provided
+  if (name !== undefined) user.name = name;
+  if (username !== undefined) user.username = username;
+  if (email !== undefined) {
+    // Check if email is already taken by another user
+    const existingUser = await User.findOne({ email, _id: { $ne: id } });
+    if (existingUser) {
+      return next(new ErrorHandler("Email already exists", 400));
+    }
+    user.email = email;
+  }
+  if (phone !== undefined) user.phone = phone;
+  if (country !== undefined) user.country = country;
+  if (walletPoints !== undefined) user.walletPoints = Number(walletPoints);
+  if (wallet !== undefined) user.wallet = Number(wallet);
+  if (isverified !== undefined) user.isverified = Boolean(isverified);
+  if (isBanned !== undefined) user.isBanned = Boolean(isBanned);
+  if (inreview !== undefined) user.inreview = Boolean(inreview);
+  if (freeSpinLimit !== undefined) user.freeSpinLimit = Number(freeSpinLimit);
+  if (dailySpinLimit !== undefined) user.dailySpinLimit = Number(dailySpinLimit);
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    user,
   });
 });
 
@@ -421,6 +465,27 @@ export const getSingleUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const getCarousalImages = catchAsyncError(async (req, res, next) => {
+  const carousal = await Carousel.find().select("url _id createdAt").sort("-createdAt");
+  
+  const host = req.get("host");
+  const hostname = host.split(":")[0];
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+  const isIp = /^[0-9.]+$/.test(hostname);
+  const baseUrl = `${req.protocol}://${host}${isLocal || isIp ? "/" : "/api/"}`;
+  
+  const updatedCarousal = carousal.map((item) => ({
+    _id: item._id,
+    url: `${baseUrl}${item.url}`,
+    createdAt: item.createdAt,
+  }));
+
+  res.status(200).json({
+    success: true,
+    carousel: updatedCarousal,
+  });
+});
+
 export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
   const type = "carousal";
   const upload = multer({ storage: storage(type) }).single("image");
@@ -588,7 +653,7 @@ export const withdrawHistory = catchAsyncError(async (req, res, next) => {
 
   const withdraws = await Withdraw.find({ status }).populate(
     "user",
-    "name username country"
+    "name username country isBanned inreview"
   );
 
   res.status(200).json({
@@ -651,6 +716,119 @@ export const withdrawRequestActions = catchAsyncError(
 );
 
 export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
+  const { codes, amount, country, redeemType } = req.body;
+
+  // Validate required filters
+  if (!amount || !country || !redeemType) {
+    return next(new ErrorHandler("Amount, country, and redeem type are required", 400));
+  }
+
+  if (!Array.isArray(codes) || codes.length === 0) {
+    return next(new ErrorHandler("No codes provided", 400));
+  }
+
+  // Find matching withdrawal requests based on filters
+  const withdraws = await Withdraw.find({
+    status: "processing",
+    amount: Number(amount),
+    redeemOption: { $regex: redeemType, $options: "i" },
+  }).populate({
+    path: "user",
+    select: "inreview isBanned country",
+    match: { country: { $regex: country, $options: "i" } },
+  });
+
+  // Filter for genuine users (not banned, not in review) and matching country
+  const validWithdraws = withdraws.filter(
+    (w) =>
+      w.user &&
+      !w.user.isBanned &&
+      !w.user.inreview &&
+      w.user.country &&
+      w.user.country.toLowerCase().includes(country.toLowerCase())
+  );
+
+  if (validWithdraws.length < codes.length) {
+    return next(
+      new ErrorHandler(
+        `Only ${validWithdraws.length} matching requests found, but ${codes.length} codes provided`,
+        400
+      )
+    );
+  }
+
+  // Map codes to withdrawal requests
+  const results = [];
+  const bulkOps = [];
+
+  for (let i = 0; i < codes.length; i++) {
+    const giftCode = typeof codes[i] === 'string' ? codes[i].trim() : codes[i]?.code?.trim() || codes[i]?.trim();
+    const withdraw = validWithdraws[i];
+
+    if (!giftCode || giftCode === "") {
+      results.push({
+        code: giftCode || `Code ${i + 1}`,
+        request_id: withdraw?._id?.toString() || null,
+        status: "failed",
+        message: "Invalid code",
+      });
+      continue;
+    }
+
+    if (!withdraw) {
+      results.push({
+        code: giftCode,
+        request_id: null,
+        status: "failed",
+        message: "No matching request found",
+      });
+      continue;
+    }
+
+    if (withdraw.status === "success") {
+      results.push({
+        code: giftCode,
+        request_id: withdraw._id.toString(),
+        status: "skipped",
+        message: "Already accepted",
+      });
+      continue;
+    }
+
+    // Queue update
+    bulkOps.push({
+      updateOne: {
+        filter: { _id: withdraw._id },
+        update: {
+          $set: {
+            voucher: giftCode,
+            status: "success",
+          },
+        },
+      },
+    });
+
+    results.push({
+      code: giftCode,
+      request_id: withdraw._id.toString(),
+      status: "success",
+      message: "Queued for update",
+    });
+  }
+
+  if (bulkOps.length > 0) {
+    await Withdraw.bulkWrite(bulkOps);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Bulk redeem complete",
+    results,
+  });
+});
+
+// Legacy endpoint for backward compatibility
+export const bulkRedeemActionLegacy = catchAsyncError(async (req, res, next) => {
   const requests = req.body;
 
   if (!Array.isArray(requests) || requests.length === 0) {
@@ -659,10 +837,10 @@ export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
 
   const ids = requests.map((item) => item.request_id).filter((id) => id);
 
-  // Fetch all relevant withdraws and populate user
+  // Fetch all relevant withdraws and populate user with full details for filtering
   const withdraws = await Withdraw.find({ _id: { $in: ids } }).populate({
     path: "user",
-    select: "inreview",
+    select: "inreview isBanned country",
   });
 
   // Map all withdraws regardless of user review status
@@ -697,11 +875,12 @@ export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
       continue;
     }
 
-    if (!withdraw.user || withdraw.user.inreview === true) {
+    // Check if user is genuine (not banned and not in review)
+    if (!withdraw.user || withdraw.user.inreview === true || withdraw.user.isBanned === true) {
       results.push({
         request_id,
         status: "failed",
-        message: "User under review",
+        message: withdraw.user?.isBanned ? "User is banned" : "User under review",
       });
       continue;
     }
@@ -746,38 +925,6 @@ export const bulkRedeemAction = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const setTopTenUser = catchAsyncError(async (req, res, next) => {
-  await TopTenUsers.deleteMany();
-  const topTenUsers = await User.find({
-    walletPoints: { $gt: 10000 },
-    isBanned: false,
-    isverified: true,
-  })
-    .select("_id username")
-    .sort({ walletPoints: -1 })
-    .limit(10);
-
-  if (topTenUsers.length > 0) {
-    const topTenUsersData = topTenUsers.map((user) => ({ user: user._id }));
-    await TopTenUsers.insertMany(topTenUsersData);
-  }
-  // Build Telegram message
-  let message =
-    "🎉 <b>Big Congratulations to Our Top Performers!</b>\n\n" +
-    "🔥 The <b>Top 10 Users</b> of the week have been officially announced!\n\n" +
-    "👏 These outstanding individuals have earned their spot through dedication and high wallet points.\n\n" +
-    "Here’s the leaderboard:\n\n";
-
-  topTenUsers.forEach((user, index) => {
-    message += `${index + 1}. ${user.username.toUpperCase()} \n`;
-  });
-
-  sendTelegramMessage(message);
-  res.status(200).json({
-    success: true,
-    message: "Top 10 users created!",
-  });
-});
 
 export const withdrawRequestDelete = catchAsyncError(async (req, res, next) => {
   const { ids } = req.body;
@@ -866,12 +1013,36 @@ export const addRedeemCode = catchAsyncError(async (req, res, next) => {
   });
 });
 
+/**
+ * Improved User Scanning Function
+ * Scans users for suspicious patterns and marks them for review
+ * Enhanced with better detection logic - marks for review instead of auto-banning
+ */
 export const scanUser = async () => {
-  const users = await findSuspectedUser();
+  try {
+    const suspectedUsers = await findSuspectedUser();
+    let scannedCount = 0;
+    let markedForReview = 0;
 
-  for (const user of users) {
-    user.isBanned = true;
-    await user.save();
-    console.log(`${user.name} ban status ${user.isBanned} updated`);
+    for (const user of suspectedUsers) {
+      // Don't auto-ban, just mark for review
+      // Admin can review and decide
+      if (!user.inreview) {
+        user.inreview = true;
+        await user.save();
+        markedForReview++;
+      }
+      scannedCount++;
+    }
+
+    console.log(`User scan completed: ${scannedCount} suspected users found, ${markedForReview} marked for review`);
+    
+    // Send notification if significant number of suspected users found
+    if (suspectedUsers.length > 10) {
+      const message = `⚠️ User Scan Alert: ${suspectedUsers.length} suspected users detected and marked for review.`;
+      sendTelegramMessage(message);
+    }
+  } catch (error) {
+    console.error("Error in user scanning:", error);
   }
 };

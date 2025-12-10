@@ -17,4 +17,10 @@ const withdrawSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Add indexes for frequently queried fields
+withdrawSchema.index({ user: 1 });
+withdrawSchema.index({ status: 1 });
+withdrawSchema.index({ createdAt: -1 });
+withdrawSchema.index({ user: 1, status: 1 }); // Compound index for user withdrawal queries
+
 export default mongoose.model('Withdraw', withdrawSchema);

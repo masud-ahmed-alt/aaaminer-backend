@@ -2,11 +2,10 @@ import express from "express";
 import {
     addRedeemCode,
     adminLogin, adminLogout, adminProfile, adminRegister, allUsers,
-    bulkRedeemAction,
-    createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getSingleUser,
+    bulkRedeemAction, bulkRedeemActionLegacy,
+    createHomeNotification, deleteCarousalImage, deleteUser, getBannedUser, getCarousalImages, getSingleUser, updateUser,
     getSuspectedUser,
     sendAnnouncement,
-    setTopTenUser,
     uploadCarousalImage,
     userBanActions,
     userGrowData, userReviewActions, withdrawHistory,
@@ -27,11 +26,13 @@ router.get('/logout',isAdmin, adminLogout);
 
 router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
+router.put("/update-user/:id", isAdmin, updateUser)
 router.post("/delete-user/:id", isAdmin, deleteUser)
 // router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
 router.post("/withdraw-actions/:id", isAdmin, withdrawRequestActions)
-router.post("/bulk-redeem", isAdmin, bulkRedeemAction)
+router.post("/bulk-redeem", isAdmin, bulkRedeemActionLegacy)
+router.post("/bulk-redeem-codes", isAdmin, bulkRedeemAction)
 
 
 
@@ -42,13 +43,13 @@ router.put("/send-mail", isAdmin, sendAnnouncement)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
 
 
+router.get("/carousal", isAdmin, getCarousalImages);
 router.post("/upload-carousal", isAdmin, uploadCarousalImage)
-router.delete('/delete-carousal/:id', deleteCarousalImage);
+router.delete('/delete-carousal/:id', isAdmin, deleteCarousalImage);
 
 
 // User validation routes
 router.get("/get-single-user/:id", isAdmin, getSingleUser);
-
 
 // find suspected users
 router.get("/get-suspected-user", isAdmin, getSuspectedUser);
@@ -56,7 +57,6 @@ router.get("/get-banned-user", isAdmin, getBannedUser);
 router.put("/user-ban-action/:userId", isAdmin, userBanActions);
 router.put("/user-review-action/:userId", isAdmin, userReviewActions);
 
-router.get("/top-ten-user", isAdmin, setTopTenUser)
 router.delete("/delete-request", isAdmin, withdrawRequestDelete)
 
 

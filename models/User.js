@@ -24,6 +24,16 @@ const userSchema = new mongoose.Schema({
 }
 );
 
+// Add indexes for frequently queried fields
+// Note: email index is already created by unique: true above
+userSchema.index({ username: 1 });
+userSchema.index({ isBanned: 1 });
+userSchema.index({ isverified: 1 });
+userSchema.index({ inreview: 1 });
+userSchema.index({ walletPoints: -1 }); // For leaderboard queries
+userSchema.index({ referredBy: 1 }); // For referral queries
+userSchema.index({ createdAt: -1 }); // For user growth queries
+
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);

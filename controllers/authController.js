@@ -3,7 +3,7 @@ import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import HomeNotification from "../models/HomeNotification.js";
 import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
-import { getRedeemPaused } from "../config/settings.js";
+import Settings from "../models/Settings.js";
 import {
   extractName,
   generateUsername,
@@ -102,7 +102,11 @@ export const register = catchAsyncError(async (req, res, next) => {
 
     getActivityLog(user.name, "new profile created");
     // Send response with token
-    sendToken(res, user, 201, `Welcome`);
+    try {
+      sendToken(res, user, 201, `Welcome`);
+    } catch (error) {
+      return next(new ErrorHandler("Failed to generate authentication token", 500));
+    }
   } catch (error) {
     console.error(error);
     return next(
@@ -121,12 +125,45 @@ export const login = catchAsyncError(async (req, res, next) => {
   // use bcryptjs consistently
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new ErrorHandler("Invalid email or password", 401));
-  sendToken(res, user, 200, `Welcome  ${user.name}!`);
+  
+  // Handle case where user.name might be undefined
+  const welcomeMessage = user.name ? `Welcome  ${user.name}!` : "Welcome!";
+  try {
+    sendToken(res, user, 200, welcomeMessage);
+  } catch (error) {
+    return next(new ErrorHandler("Failed to generate authentication token", 500));
+  }
+});
+
+export const logout = catchAsyncError(async (req, res, next) => {
+  // Clear the cookie by setting it to expire immediately
+  const cookieName = process.env.COOKIE_NAME;
+  if (!cookieName) {
+    return next(new ErrorHandler("Cookie name not configured", 500));
+  }
+
+  res
+    .status(200)
+    .cookie(cookieName, "", {
+      expires: new Date(0),
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    })
+    .json({
+      success: true,
+      message: "Logged out successfully",
+    });
 });
 
 export const profile = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const profileUser = await User.findById(user);
+  
+  if (!profileUser) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+  
   const referred = await User.find({ referredBy: user, isverified: true })
     .select("username")
     .countDocuments();
@@ -162,10 +199,10 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
     filter.status = status;
   }
 
-  // ✅ Updated field selection to include `voucher` for "all" and "success"
+  // ✅ Updated field selection to include `voucher` and `amount` for "all" and "success"
   const selectFields = ["success", "all"].includes(status)
-    ? "name redeemOption voucher points status createdAt updatedAt"
-    : "name redeemOption points status createdAt updatedAt";
+    ? "name redeemOption voucher upi_id amount points status createdAt updatedAt"
+    : "name redeemOption upi_id amount points status createdAt updatedAt";
 
   const sortField = status === "success" ? "-updatedAt" : "-createdAt";
 
@@ -185,6 +222,10 @@ export const myVouchers = catchAsyncError(async (req, res, next) => {
 export const verifyEmailSendOtp = catchAsyncError(async (req, res, next) => {
   const userid = req.user;
   const user = await User.findById(userid);
+  
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
   setAndSendOTP(user, "Profile Verification !");
 
@@ -212,11 +253,12 @@ export const verifyEmail = catchAsyncError(async (req, res, next) => {
   user.otpExpiry = undefined;
 
   // Add referral rewards if applicable
-  let referalUser = [];
   if (user.referredBy) {
-    referalUser = await User.findById(user.referredBy);
-    referalUser.walletPoints += 500;
-    await referalUser.save();
+    const referalUser = await User.findById(user.referredBy);
+    if (referalUser) {
+      referalUser.walletPoints += 500;
+      await referalUser.save();
+    }
   }
 
   await user.save();
@@ -378,15 +420,6 @@ export const checkRedeemEligibility = catchAsyncError(
       return next(new ErrorHandler("You are not eligible to redeem", 401));
     }
 
-    // const topUsersCount = await TopTenUsers.find().countDocuments()
-    // if (topUsersCount < 1)
-    //   return next(new ErrorHandler("Redemption has not been initiated yet at this time!", 400));
-
-    // // Step 1: Check if the user is in the top 10
-    // const isInTopTen = await TopTenUsers.findOne({ "user": userId }).select("user")
-    // if (!isInTopTen) {
-    //   return next(new ErrorHandler("You didn’t rank in the top 10 this month during evaluation. Try again next month!", 400));
-    // }
 
     res.status(200).json({
       success: true,
@@ -400,63 +433,103 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   const user = req.user;
   const { wallet, option = 0 } = req.body;
 
+  // Step 1: Fetch user data
   const userData = await User.findById(user);
-  if (!userData) return next(new ErrorHandler("User not found", 404));
+  if (!userData) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
-  if (!userData.isverified)
+  // Step 2: Validate user status
+  if (!userData.isverified) {
     return next(new ErrorHandler("Please verify your profile.", 400));
+  }
 
-  if (userData.isBanned)
+  if (userData.isBanned) {
     return next(new ErrorHandler("You're not eligible to redeem", 400));
-  if (userData.inreview)
+  }
+
+  if (userData.inreview) {
     return next(
       new ErrorHandler(
         "Your profile is under review. You cannot redeem at this time.",
         400
       )
     );
+  }
 
-  if (!userData.country)
+  // Step 3: Validate country
+  if (!userData.country) {
     return next(
       new ErrorHandler("Please update your country to make a redeem", 400)
     );
-
-  if (!wallet || userData.walletPoints < 100000)
-    return next(new ErrorHandler("Minimum redeem points is 1,00,000", 400));
-
-  if (userData.country !== "india") {
-    const validPoints = new Set([500000, 1000000, 1500000]);
-    if (!validPoints.has(wallet)) {
-      return next(
-        new ErrorHandler(
-          `Since you are from ${userData.country.toUpperCase()}. Please select from: ` +
-            [...validPoints].join(", "),
-          400
-        )
-      );
-    }
-  } else {
-    const validPoints = new Set([
-      10000, 20000, 30000, 50000, 80000, 100000, 150000, 200000,
-    ]);
-    if (!validPoints.has(wallet)) {
-      return next(
-        new ErrorHandler(
-          "Please select from: " + [...validPoints].join(", "),
-          400
-        )
-      );
-    }
   }
 
-  if (userData.walletPoints < wallet)
-    return next(new ErrorHandler("Insufficient points", 400));
+  // Step 4: Get redeem settings
+  const settings = await Settings.getSettings();
+  
+  // Step 5: Check if redeem is paused
+  if (settings.redeemPaused) {
+    return next(
+      new ErrorHandler(
+        "Redemption is temporarily paused. Please try later",
+        400
+      )
+    );
+  }
 
-  // Validate option value and assign redeem name
+  // Step 6: Determine country-specific settings
+  const isIndia = userData.country.toLowerCase() === "india";
+  const minRedeemAmount = isIndia 
+    ? settings.minRedeemAmountIndia 
+    : settings.minRedeemAmountOther;
+  const validPoints = isIndia 
+    ? settings.redeemAmountsIndia 
+    : settings.redeemAmountsOther;
+
+  // Step 7: Validate wallet amount exists
+  if (!wallet || wallet <= 0) {
+    return next(
+      new ErrorHandler(
+        `Minimum redeem points is ${minRedeemAmount.toLocaleString()}`,
+        400
+      )
+    );
+  }
+
+  // Step 8: Validate wallet meets minimum requirement
+  if (userData.walletPoints < minRedeemAmount) {
+    return next(
+      new ErrorHandler(
+        `Minimum redeem points is ${minRedeemAmount.toLocaleString()}`,
+        400
+      )
+    );
+  }
+
+  // Step 9: Validate wallet is in valid points list
+  const validPointsSet = new Set(validPoints);
+  if (!validPointsSet.has(wallet)) {
+    const pointsList = validPoints.map(p => p.toLocaleString()).join(", ");
+    return next(
+      new ErrorHandler(
+        `Please select from: ${pointsList}`,
+        400
+      )
+    );
+  }
+
+  // Step 10: Validate sufficient balance
+  if (userData.walletPoints < wallet) {
+    return next(new ErrorHandler("Insufficient points", 400));
+  }
+
+  // Step 11: Validate and assign redeem option
   let redeemName;
-  if (option === 0 || option === "0") {
+  const optionValue = typeof option === 'string' ? parseInt(option, 10) : option;
+  
+  if (optionValue === 0) {
     redeemName = "Amazon gift voucher";
-  } else if (option === 1 || option === "1") {
+  } else if (optionValue === 1) {
     redeemName = "Google Play voucher";
   } else {
     return next(
@@ -467,22 +540,14 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  if (getRedeemPaused()) {
-    return next(
-      new ErrorHandler(
-        "Redemption is temporarily paused. Please try later",
-        400
-      )
-    );
-  }
-
+  // Step 12: Calculate amount and process withdrawal
   const amount = wallet * 0.001;
   userData.walletPoints -= wallet;
 
   await Withdraw.create({
     user: user,
     name: redeemName,
-    redeemOption: option.toString(),
+    redeemOption: optionValue.toString(),
     amount,
     points: wallet,
   });

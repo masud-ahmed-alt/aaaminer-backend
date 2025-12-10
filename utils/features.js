@@ -17,28 +17,50 @@ const cookieOptions = {
 };
 
 const sendToken = (resp, user, code, message) => {
-  const userWithoutPassword = user.toObject();
-  delete userWithoutPassword.password;
+  try {
+    // Validate user object
+    if (!user || !user._id) {
+      throw new Error("Invalid user object: missing user or user._id");
+    }
 
-  // Create JWT
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+    // Convert user to object safely
+    const userWithoutPassword = user.toObject ? user.toObject() : { ...user };
+    delete userWithoutPassword.password;
 
-  // Send token both as cookie (for browser) and JSON (for mobile apps)
-  return resp
-    .status(code)
-    .cookie(process.env.COOKIE_NAME, token, cookieOptions)
-    .json({
-      success: true,
-      message,
-      token, // IMPORTANT FOR ANDROID
-      user: userWithoutPassword,
+    // Validate JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
+    // Create JWT
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
     });
+
+    // Validate COOKIE_NAME
+    if (!process.env.COOKIE_NAME) {
+      throw new Error("COOKIE_NAME is not defined in environment variables");
+    }
+
+    // Send token both as cookie (for browser) and JSON (for mobile apps)
+    return resp
+      .status(code)
+      .cookie(process.env.COOKIE_NAME, token, cookieOptions)
+      .json({
+        success: true,
+        message,
+        token, 
+        user: userWithoutPassword,
+      });
+  } catch (error) {
+    console.error("Error in sendToken:", error);
+    throw error; // Re-throw to be caught by error middleware
+  }
 };
 
 const sendEmail = async (email, subject, htmlContent, next) => {
-  const transporter = nodemailer.createTransport({
+  // Build transporter config
+  const transporterConfig = {
     host: process.env.SMTP_HOST,
     service: process.env.SMTP_SERVICE,
     port: process.env.SMTP_PORT,
@@ -46,12 +68,22 @@ const sendEmail = async (email, subject, htmlContent, next) => {
       user: process.env.SMTP_MAIL,
       pass: process.env.SMTP_PASSWORD,
     },
-    dkim: {
-      domainName: process.env.DOMAIN,
-      keySelector: process.env.KEY_SELECTOR,
-      privateKey: process.env.DKIM_PRIVATE_KEY,
-    },
-  });
+  };
+
+  // Only add DKIM if all required variables are present
+  const domain = process.env.DOMAIN || (process.env.SMTP_MAIL ? process.env.SMTP_MAIL.split('@')[1] : null);
+  const keySelector = process.env.KEY_SELECTOR;
+  const privateKey = process.env.DKIM_PRIVATE_KEY;
+
+  if (domain && keySelector && privateKey && privateKey.trim()) {
+    transporterConfig.dkim = {
+      domainName: domain,
+      keySelector: keySelector,
+      privateKey: privateKey.replace(/\\n/g, '\n'), // Handle newlines in private key
+    };
+  }
+
+  const transporter = nodemailer.createTransport(transporterConfig);
 
   const mailOptions = {
     from: process.env.SMTP_MAIL,
@@ -158,26 +190,31 @@ const findSuspectedUser = async () => {
     "live.com",
   ];
 
-  const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/;
-  const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/;
+  // More robust regex for suspicious email patterns
+  const suspiciousEmailRegex = new RegExp(
+    `^(?:[^@\\s]+(?:\\.[^@\\s]+)*|"(?:[^"\\\\]|\\\\.)*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|(?:\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\]))$`,
+    "i"
+  );
+
+  // Regex to detect multiple dots or special characters in username part
+  const usernameSuspicionRegex = /[.]{2,}|[^\w.@-]/;
+
+  // Regex to detect non-standard domains
   const unknownDomainRegex = new RegExp(
     `@(?!(${knownDomains.join("|")})$).*`,
     "i"
   );
 
-  const nameWithExtraDotsRegex = /(\.{2,})/;
-  const nameTooManySegmentsRegex = /(\.[^.]+){2,}/;
-  const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/;
-
   const suspectedUsers = await User.find({
     $or: [
-      { email: { $regex: extraDotsRegex } },
-      { email: { $regex: tooManySegmentsRegex } },
+      // Users with emails that don't match a standard email pattern
+      { email: { $not: suspiciousEmailRegex } },
+      // Users with suspicious characters or patterns in the username part of their email
+      { email: { $regex: usernameSuspicionRegex } },
+      // Users with emails from unknown domains
       { email: { $regex: unknownDomainRegex } },
-
-      { name: { $regex: nameWithExtraDotsRegex } },
-      { name: { $regex: nameTooManySegmentsRegex } },
-      { name: { $regex: nameNonAlphanumericRegex } },
+      // Users with names containing suspicious patterns (e.g., multiple dots, non-alphanumeric)
+      { name: { $regex: /[.]{2,}|[^a-zA-Z0-9\s.-]/ } },
     ],
   });
 
@@ -201,12 +238,14 @@ const generateUsername = async () => {
     .join("");
   return username;
 };
+
 const extractName = async (email) => {
   if (!email || typeof email !== "string") return null;
   return email.split("@")[0];
 };
 
 const getActivityLog = async (user, message) => {
+  // Activity logging - can be enhanced with logger utility if needed
   console.info(`${user} ${message}`);
 };
 
@@ -216,7 +255,7 @@ const resetSpinLimits = async () => {
       {},
       { $set: { dailySpinLimit: 17, freeSpinLimit: 3 } }
     );
-    console.info("Spin limits reset successfully for all users.");
+    console.log("Spin limits reset successfully for all users.");
   } catch (error) {
     console.error("Error resetting spin limits:", error);
   }

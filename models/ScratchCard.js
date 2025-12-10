@@ -7,4 +7,8 @@ const scratchCardSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Add indexes for performance
+scratchCardSchema.index({ completedBy: 1 });
+scratchCardSchema.index({ createdAt: -1 });
+
 export default mongoose.model('ScratchCard', scratchCardSchema);

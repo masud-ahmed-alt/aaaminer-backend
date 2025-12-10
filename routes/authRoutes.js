@@ -2,6 +2,7 @@ import express from "express";
 import {
   register,
   login,
+  logout,
   profile,
   withdrawRequest,
   myVouchers,
@@ -20,7 +21,6 @@ import { isAuthenticated } from "../middlewares/authMiddleware.js";
 import { createRateLimiter } from "../microservices/apiLimiter.js";
 import { resetSpinLimits } from "../utils/features.js";
 
-
 const router = express.Router();
 
 // Register a new user
@@ -35,21 +35,19 @@ router.post(
 
 // Login a user
 router.post("/login", login);
+router.post("/logout", isAuthenticated, logout);
 router.get("/me", isAuthenticated, profile);
 
 // Additional routes can go here (e.g., forgot password, logout)
 router.post("/withdraw", isAuthenticated, withdrawRequest);
 router.get("/myvoucher", isAuthenticated, myVouchers);
 
-router.post(
-  "/send-otp-email",
-  createRateLimiter({
-    max: 3,
-    message: "Too many attempts. Please try again later.",
-  }),
-  isAuthenticated,
-  verifyEmailSendOtp
-);
+// createRateLimiter({
+//     max: 3,
+//     message: "Too many attempts. Please try again later.",
+//   }),
+
+router.post("/send-otp-email", isAuthenticated, verifyEmailSendOtp);
 router.post("/verify-email", isAuthenticated, verifyEmail);
 router.get("/get-home-notification", getHomeNotification);
 
@@ -72,6 +70,6 @@ router.get(
   checkRedeemEligibility
 );
 
-router.get("/add-free-spins", isAuthenticated, increaseSpinLimits)
-router.post("/complete-spin", isAuthenticated,completeSpin);
+router.get("/add-free-spins", isAuthenticated, increaseSpinLimits);
+router.post("/complete-spin", isAuthenticated, completeSpin);
 export default router;

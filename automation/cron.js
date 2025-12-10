@@ -14,13 +14,14 @@ export const scratchCardCron = () => {
   cron.schedule('0 */5 * * *', generateScratchCard, {
     timezone: "Asia/Kolkata",
   });
-}; 
+};
 
 export const usersScanning = () => {
   cron.schedule('0 0 * * *', scanUser, {
     timezone: "Asia/Kolkata",
   });
 };
+
 // reset daily and free spin limits at 30 sec for testing purpose
 export const resetSpinLimitsCron = () => {
   cron.schedule('0 0 * * *', resetSpinLimits, {
