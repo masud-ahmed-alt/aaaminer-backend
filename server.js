@@ -49,26 +49,26 @@ const allowedOrigins = [
   .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
 
 const isDevelopment = process.env.NODE_ENV === "development";
-// Allow mobile app requests (no origin) when not explicitly in production mode
-// This enables local testing with physical devices
-const allowMobileRequests = process.env.NODE_ENV !== "production";
+// Android apps don't send Origin headers, so we should allow requests without origin
+// Set ALLOW_MOBILE_NO_ORIGIN=false in env if you want to strictly require origin
+const allowNoOrigin = process.env.ALLOW_MOBILE_NO_ORIGIN !== "false";
 
 logger.info(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
 logger.info(`CORS Allowed Origins: ${allowedOrigins.join(", ") || "None configured"}`);
+logger.info(`Allow requests without origin: ${allowNoOrigin ? "YES (for mobile apps)" : "NO"}`);
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // For requests without origin (like mobile apps, Postman, etc.)
       if (!origin) {
-        // Allow mobile app requests when not in production mode
-        // This enables local testing with physical Android devices
-        if (allowMobileRequests) {
-          logger.debug("CORS: Allowing request without origin (mobile app/local testing)");
+        // Allow mobile app requests - Android apps don't send Origin headers
+        if (allowNoOrigin) {
+          logger.debug("CORS: Allowing request without origin (mobile app)");
           callback(null, true);
         } else {
-          logger.warn("CORS: Blocked request without origin (production mode)");
-          callback(new Error("Origin required in production"));
+          logger.warn("CORS: Blocked request without origin");
+          callback(new Error("Origin required"));
         }
         return;
       }
@@ -91,7 +91,7 @@ app.use(
       }
     },
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Cookie"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   })
 );
@@ -128,10 +128,26 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests without origin (mobile apps)
+      if (!origin) {
+        if (allowNoOrigin) {
+          callback(null, true);
+        } else {
+          callback(new Error("Origin required"));
+        }
+        return;
+      }
+      // Check allowed origins
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // In development, allow any origin for testing
+        if (isDevelopment) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
       }
     },
     credentials: true,
