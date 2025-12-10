@@ -49,9 +49,10 @@ const allowedOrigins = [
   .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
 
 const isDevelopment = process.env.NODE_ENV === "development";
-// Android apps don't send Origin headers, so we should allow requests without origin
-// Set ALLOW_MOBILE_NO_ORIGIN=false in env if you want to strictly require origin
-const allowNoOrigin = process.env.ALLOW_MOBILE_NO_ORIGIN !== "false";
+// Android apps don't send Origin headers, so we must allow requests without origin
+// Mobile apps (Android/iOS) don't send Origin headers, so we always allow them
+// The ALLOW_MOBILE_NO_ORIGIN env var is ignored - mobile apps are always allowed
+const allowNoOrigin = true;
 
 logger.info(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
 logger.info(`CORS Allowed Origins: ${allowedOrigins.join(", ") || "None configured"}`);
