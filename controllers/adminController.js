@@ -51,8 +51,12 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   // Handle case where admin.adminName might be undefined
   const welcomeMessage = admin.adminName ? `Welcome  ${admin.adminName}!` : "Welcome!";
   try {
+    // Set cookie and return response
     sendToken(res, admin, 200, welcomeMessage);
+    // Log cookie setting for debugging
+    logger.debug(`Cookie set for admin: ${admin._id}, COOKIE_NAME: ${process.env.COOKIE_NAME}`);
   } catch (error) {
+    logger.error("Failed to generate authentication token", error);
     return next(new ErrorHandler("Failed to generate authentication token", 500));
   }
 });
