@@ -18,7 +18,9 @@ const cookieOptions = {
   // Use secure cross-site cookies in production; relax for local development
   sameSite: isProduction ? "none" : "lax",
   httpOnly: true,
-  secure: isProduction,
+  secure: true,
+  path: "/", // Explicitly set path to root for cross-domain cookies
+  // Don't set domain - let browser use the domain that sets it (rewardplus.cloud)
 };
 
 const sendToken = (resp, user, code, message) => {

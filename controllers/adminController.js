@@ -9,6 +9,7 @@ import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
 import {
+  cookieOptions,
   findSuspectedUser,
   getActivityLog,
   sendEmail,
@@ -84,12 +85,7 @@ export const adminLogout = catchAsyncError(async (req, res, next) => {
     }
 
     // Clear authentication cookie with matching options from sendToken
-    res.clearCookie(process.env.COOKIE_NAME, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    });
+    res.clearCookie(process.env.COOKIE_NAME, cookieOptions);
 
     // Send logout response
     return res.status(200).json({

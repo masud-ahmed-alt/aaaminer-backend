@@ -82,11 +82,12 @@ app.use(
       const normalizedOrigin = origin.replace(/\/$/, "");
 
       if (allowedOrigins.includes(normalizedOrigin)) {
-        callback(null, true);
+        // Return the exact origin (not true) for credentials to work properly
+        callback(null, normalizedOrigin);
       } else {
         if (isDevelopment) {
           logger.warn(`CORS: Allowing non-allowed origin in development: ${origin}`);
-          callback(null, true);
+          callback(null, origin);
         } else {
           logger.error(`CORS blocked origin: ${origin}`);
           callback(new Error("Not allowed by CORS"));
