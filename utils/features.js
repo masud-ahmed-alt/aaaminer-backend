@@ -7,6 +7,7 @@ import ScratchCard from "../models/ScratchCard.js";
 import Task from "../models/Task.js";
 import { getOTPMessage } from "./otpMessage.js";
 import User from "../models/User.js";
+import { logger } from "./logger.js";
 
 // Determine if we're in production (check multiple ways)
 const isProduction = process.env.NODE_ENV === "production" || 
@@ -25,13 +26,7 @@ const cookieOptions = {
   // Don't set domain - let browser use the domain that sets it (rewardplus.cloud)
 };
 
-// Log cookie configuration on startup for debugging
-console.log(`🍪 Cookie config (${isProduction ? "production" : "development"}):`, {
-  sameSite: cookieOptions.sameSite,
-  secure: cookieOptions.secure,
-  path: cookieOptions.path,
-  httpOnly: cookieOptions.httpOnly,
-});
+// Cookie configuration is set based on environment
 
 const sendToken = (resp, user, code, message) => {
   try {
@@ -64,7 +59,7 @@ const sendToken = (resp, user, code, message) => {
         user: userWithoutPassword,
       });
   } catch (error) {
-    console.error("Error in sendToken:", error);
+    logger.error("Error in sendToken", error);
     throw error;
   }
 };
@@ -111,7 +106,7 @@ const sendEmail = async (email, subject, htmlContent, next) => {
   try {
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error('SMTP Error:', {
+    logger.error("SMTP Error", {
       code: error.code,
       command: error.command,
       response: error.response,
@@ -176,20 +171,20 @@ const sendTelegramMessage = (message, imagePath) => {
 
   if (imagePath) {
     if (!fs.existsSync(imagePath)) {
-      console.error("Image file not found:", imagePath);
+      logger.error("Image file not found", { imagePath });
       return;
     }
 
     bot
       .sendPhoto(chatId, fs.createReadStream(imagePath), { caption: message })
       .catch((error) => {
-        console.error("Error sending telegram image message:", error);
+        logger.error("Error sending telegram image message", error);
       });
   } else {
     bot
       .sendMessage(chatId, message, { parse_mode: "HTML" })
       .catch((error) => {
-        console.error("Error sending telegram text message:", error);
+        logger.error("Error sending telegram text message", error);
       });
   }
 };
@@ -259,7 +254,7 @@ const resetSpinLimits = async () => {
       { $set: { dailySpinLimit: 17, freeSpinLimit: 3 } }
     );
   } catch (error) {
-    console.error("Error resetting spin limits:", error);
+    logger.error("Error resetting spin limits", error);
   }
 };
 

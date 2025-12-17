@@ -22,31 +22,9 @@ export const usersScanning = () => {
   });
 };
 
-// reset daily and free spin limits at 30 sec for testing purpose
+// Reset daily and free spin limits at midnight
 export const resetSpinLimitsCron = () => {
   cron.schedule('0 0 * * *', resetSpinLimits, {
     timezone: "Asia/Kolkata",
   });
 };
-
-
-
-// export const resetSpinLimitsCron = () => {
-//   cron.schedule('0 0 * * *', resetSpinLimits, {
-//     timezone: "Asia/Kolkata",
-//   });
-// };
-
-
-
-// export const taskCron = () => {
-//   cron.schedule('*/30 * * * * *', generateDailyTasks, {
-//     timezone: "Asia/Kolkata",
-//   });
-// }
-
-// export const scratchCardCron = () => {
-//   cron.schedule('*/40 * * * * *', generateScratchCard, {
-//     timezone: "Asia/Kolkata",
-//   });
-// }

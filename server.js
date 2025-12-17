@@ -61,19 +61,17 @@ const allowedOrigins = Array.from(new Set([...corsOrigins, ...legacyOrigins]));
 const isDevelopment = process.env.NODE_ENV === "development";
 const allowNoOrigin = true;
 
-logger.info(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
-logger.info(`CORS Allowed Origins: ${allowedOrigins.join(", ") || "None configured"}`);
-logger.info(`Allow requests without origin: ${allowNoOrigin ? "YES (for mobile apps)" : "NO"}`);
+// Environment and CORS configuration loaded
 
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) {
         if (allowNoOrigin) {
-          logger.debug("CORS: Allowing request without origin (mobile app)");
+          // CORS: Allowing request without origin (mobile app)
           callback(null, true);
         } else {
-          logger.warn("CORS: Blocked request without origin");
+          // CORS: Blocked request without origin
           callback(new Error("Origin required"));
         }
         return;
@@ -86,7 +84,7 @@ app.use(
         callback(null, normalizedOrigin);
       } else {
         if (isDevelopment) {
-          logger.warn(`CORS: Allowing non-allowed origin in development: ${origin}`);
+          // CORS: Allowing non-allowed origin in development
           callback(null, origin);
         } else {
           logger.error(`CORS blocked origin: ${origin}`);
@@ -109,13 +107,13 @@ if (!dbURI) {
 connectDB(dbURI);
 
 // Initialize cron jobs
-logger.info("Initializing cron jobs...");
+// Initializing cron jobs...
 taskCron();
 // instantRedeemCron()
 scratchCardCron();
 usersScanning();
 resetSpinLimitsCron();
-logger.success("Cron jobs initialized");
+// Cron jobs initialized
 
 // Body parsing middleware with size limit
 app.use(express.json({ limit: "10mb" }));
@@ -187,5 +185,4 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 server.listen(PORT, HOST, () => {
   logger.success(`Server running on ${HOST}:${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
 });

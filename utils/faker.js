@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import User from '../models/User.js';
 import bcrypt from "bcrypt";
+import { logger } from "./logger.js";
 
 export const seedUsers = async (no) => {
     try {
@@ -35,10 +36,10 @@ export const seedUsers = async (no) => {
 
         // Insert all users into the database at once
         const insertedUsers = await User.insertMany(users);
-        console.log(`${insertedUsers.length} users seeded successfully`);
+        // Users seeded successfully
 
     } catch (err) {
-        console.error('Error seeding users:', err);
+        logger.error('Error seeding users', err);
     } finally {
         process.exit();  // Exit the process
     }

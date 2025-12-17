@@ -14,9 +14,6 @@ import {
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js";
 
-
-
-
 const router = express.Router();
 
 // Login a user
@@ -28,20 +25,15 @@ router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
 router.put("/update-user/:id", isAdmin, updateUser)
 router.post("/delete-user/:id", isAdmin, deleteUser)
-// router.get("/live-user-count", isAdmin, liveUserCount)
 router.get("/withdraw", isAdmin, withdrawHistory)
 router.post("/withdraw-actions/:id", isAdmin, withdrawRequestActions)
 router.post("/bulk-redeem", isAdmin, bulkRedeemActionLegacy)
 router.post("/bulk-redeem-codes", isAdmin, bulkRedeemAction)
 
-
-
 router.get("/user-growth", isAdmin, userGrowData)
-
 
 router.put("/send-mail", isAdmin, sendAnnouncement)
 router.post("/create-home-notification", isAdmin, createHomeNotification)
-
 
 router.get("/carousal", isAdmin, getCarousalImages);
 router.post("/upload-carousal", isAdmin, uploadCarousalImage)
@@ -59,8 +51,6 @@ router.put("/user-review-action/:userId", isAdmin, userReviewActions);
 
 router.delete("/delete-request", isAdmin, withdrawRequestDelete)
 
-
-// Redeem Code 
 router.post("/add-redeem-code", isAdmin, addRedeemCode)
 
 export default router;

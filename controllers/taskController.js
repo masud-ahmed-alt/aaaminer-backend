@@ -133,7 +133,7 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
       users,
     });
   } catch (error) {
-    console.error("Error in getRanking:", error);
+    logger.error("Error in getRanking", error);
     return next(new ErrorHandler("Something went wrong", 500));
   }
 });
@@ -143,11 +143,9 @@ export const generateDailyTasks = catchAsyncError(async () => {
   if (task.length > 0) {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
-      logger.info("Existing tasks deleted, creating new tasks");
       await createTask();
     }
   } else {
-    logger.info("No existing tasks found, creating new tasks");
     await createTask();
   }
 });
@@ -157,7 +155,6 @@ export const generateScratchCard = catchAsyncError(async () => {
   if (scratchCards.length > 0) {
     const deleteScratchCard = await ScratchCard.deleteMany({});
     if (deleteScratchCard.deletedCount > 0) {
-      logger.info("Existing scratch cards deleted, creating new ones");
       await createScratchCard();
     }
   } else {
@@ -182,7 +179,7 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
       tasks 
     });
   } catch (error) {
-    console.error("Error fetching user tasks");
+    logger.error("Error fetching user tasks", error);
     return next(new ErrorHandler("Internal server error", 500));
   }
 });
@@ -204,7 +201,7 @@ export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
       scratchCard 
     });
   } catch (error) {
-    console.error("Error fetching user scratchCard");
+    logger.error("Error fetching user scratchCard", error);
     return next(new ErrorHandler("Internal server error", 500));
   }
 });
@@ -285,7 +282,7 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
       message: "Scratch Card completed successfully",
     });
   } catch (error) {
-    console.error("Error completing Scratch Card:");
+    logger.error("Error completing Scratch Card", error);
     next(new ErrorHandler("An error occurred while completing the task", 500));
   }
 });

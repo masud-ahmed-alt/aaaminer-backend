@@ -12,7 +12,7 @@ import {
   setAndSendOTP,
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
-import { da } from "@faker-js/faker";
+import { logger } from "../utils/logger.js";
 
 export const register = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -108,7 +108,7 @@ export const register = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler("Failed to generate authentication token", 500));
     }
   } catch (error) {
-    console.error(error);
+    logger.error("Registration failed", error);
     return next(
       new ErrorHandler("Registration failed. Please try again.", 500)
     );

@@ -19,7 +19,6 @@ import {
 } from "../controllers/authController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
 import { createRateLimiter } from "../microservices/apiLimiter.js";
-import { resetSpinLimits } from "../utils/features.js";
 
 const router = express.Router();
 
@@ -38,14 +37,9 @@ router.post("/login", login);
 router.post("/logout", isAuthenticated, logout);
 router.get("/me", isAuthenticated, profile);
 
-// Additional routes can go here (e.g., forgot password, logout)
+// Additional routes
 router.post("/withdraw", isAuthenticated, withdrawRequest);
 router.get("/myvoucher", isAuthenticated, myVouchers);
-
-// createRateLimiter({
-//     max: 3,
-//     message: "Too many attempts. Please try again later.",
-//   }),
 
 router.post("/send-otp-email", isAuthenticated, verifyEmailSendOtp);
 router.post("/verify-email", isAuthenticated, verifyEmail);

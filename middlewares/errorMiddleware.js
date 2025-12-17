@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger.js";
+
 const errorMiddleware = (err, req, resp, next) => {
     // Default error properties
     err.message ||= "Internal server error";
@@ -57,11 +59,10 @@ const errorMiddleware = (err, req, resp, next) => {
     });
 };
 
-
 const catchAsyncError = (theFunction) => {
     return (req, resp, next) => {
         Promise.resolve(theFunction(req, resp, next)).catch((err) => {
-            console.error("Error caught in catchAsyncError:", err);
+            logger.error("Error caught in catchAsyncError", err);
             next(err);
         });
     };

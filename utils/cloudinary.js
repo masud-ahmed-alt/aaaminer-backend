@@ -17,11 +17,9 @@ if (isCloudinaryConfigured) {
     api_key: CLOUDINARY_API_KEY,
     api_secret: CLOUDINARY_API_SECRET,
   });
-  logger.info("Cloudinary configured for media uploads");
+  // Cloudinary configured for media uploads
 } else {
-  logger.warn(
-    "Cloudinary is not fully configured. Falling back to local file storage for media uploads"
-  );
+  // Cloudinary not configured, falling back to local file storage
 }
 
 export { cloudinary };

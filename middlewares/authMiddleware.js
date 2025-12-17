@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { ErrorHandler } from '../utils/utility.js';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import Admin from '../models/Admin.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Middleware to check if the user is authenticated
@@ -96,9 +96,9 @@ export const isAdmin = async (req, res, next) => {
       }
     }
 
-    // Debug logging for cookie issues
-    if (!token && process.env.NODE_ENV === "production") {
-      console.log("🔍 isAdmin: No token found", {
+    // Debug logging for cookie issues (development only)
+    if (!token && process.env.NODE_ENV === "development") {
+      logger.debug("isAdmin: No token found", {
         hasCookies: !!req.cookies,
         cookieName: process.env.COOKIE_NAME,
         cookieKeys: req.cookies ? Object.keys(req.cookies) : [],

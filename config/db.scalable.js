@@ -33,8 +33,6 @@ const connectDB = (uri) => {
     .connect(uri, options)
     .then((data) => {
       logger.success(`Connected to DB: ${data.connection.host}`);
-      logger.info(`Database: ${data.connection.name}`);
-      logger.info(`Connection Pool: ${data.connection.readyState === 1 ? 'Active' : 'Inactive'}`);
       
       // Monitor connection pool
       monitorConnectionPool(data.connection);
@@ -60,7 +58,7 @@ const connectDB = (uri) => {
   // Graceful shutdown
   process.on('SIGINT', async () => {
     await mongoose.connection.close();
-    logger.info('MongoDB connection closed through app termination');
+    // MongoDB connection closed through app termination
     process.exit(0);
   });
 };
@@ -77,7 +75,7 @@ const monitorConnectionPool = (connection) => {
       logger.warn(`High connection pool usage: ${poolSize}/50`);
     }
     
-    logger.debug(`Connection pool: ${activeConnections} active connections`);
+    // Connection pool monitoring (debug only)
   }, 60000); // Check every minute
 };
 

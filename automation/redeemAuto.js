@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import Withdraw from "../models/Withdraw.js";
 import RedeemCodes from "../models/RedeemCode.js";
+import { logger } from "../utils/logger.js";
 
 export const instantRedeemCron = () => {
   // Run every 30 seconds
@@ -63,6 +64,6 @@ const instantRedeem = async () => {
       await redeemCode.save();
     }
   } catch (err) {
-    console.error("Instant Redeem Cron Error:", err.message);
+    logger.error("Instant Redeem Cron Error", err);
   }
 };

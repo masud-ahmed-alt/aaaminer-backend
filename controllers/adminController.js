@@ -53,8 +53,6 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   try {
     // Set cookie and return response
     sendToken(res, admin, 200, welcomeMessage);
-    // Log cookie setting for debugging
-    logger.debug(`Cookie set for admin: ${admin._id}, COOKIE_NAME: ${process.env.COOKIE_NAME}`);
   } catch (error) {
     logger.error("Failed to generate authentication token", error);
     return next(new ErrorHandler("Failed to generate authentication token", 500));
@@ -83,7 +81,7 @@ export const adminLogout = catchAsyncError(async (req, res, next) => {
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
-          console.error("Session destroy error:", err);
+          logger.error("Session destroy error", err);
         }
       });
     }
@@ -204,7 +202,7 @@ export const setupSocketEvents = (io) => {
         users: userCount,
       });
     } catch (error) {
-      console.error("Error sending live user count:", error);
+      logger.error("Error sending live user count", error);
     }
 
     // ✅ Add this connection to the active users
@@ -289,7 +287,7 @@ export const sendAnnouncement = catchAsyncError(async (req, res, next) => {
       message: "Announcement emails sent successfully!",
     });
   } catch (error) {
-    console.error("Error sending emails:", error);
+    logger.error("Error sending emails", error);
     return next(new ErrorHandler("Failed to send announcement emails.", 500));
   }
 });
@@ -643,7 +641,7 @@ export const userBanActions = catchAsyncError(async (req, res, next) => {
         : unbanMailMsg(user.name);
       await sendEmail(user.email, subject, message);
     } catch (emailError) {
-      console.error("Failed to send email:", emailError);
+      logger.error("Failed to send email", emailError);
     }
 
     res.status(200).json({
@@ -1094,14 +1092,12 @@ export const scanUser = async () => {
       scannedCount++;
     }
 
-    logger.info(`User scan completed: ${scannedCount} suspected users found, ${markedForReview} marked for review`);
-    
     // Send notification if significant number of suspected users found
     if (suspectedUsers.length > 10) {
       const message = `⚠️ User Scan Alert: ${suspectedUsers.length} suspected users detected and marked for review.`;
       sendTelegramMessage(message);
     }
   } catch (error) {
-    console.error("Error in user scanning:", error);
+    logger.error("Error in user scanning", error);
   }
 };
