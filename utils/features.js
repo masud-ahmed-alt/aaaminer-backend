@@ -10,9 +10,10 @@ import User from "../models/User.js";
 
 const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
-  sameSite: "none",
+  // Use secure cross-site cookies in production; relax for local development
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === "production",
 };
 
 const sendToken = (resp, user, code, message) => {
