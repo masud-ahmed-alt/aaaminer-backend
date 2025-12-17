@@ -8,12 +8,17 @@ import Task from "../models/Task.js";
 import { getOTPMessage } from "./otpMessage.js";
 import User from "../models/User.js";
 
+// Determine if we're in production (check multiple ways)
+const isProduction = process.env.NODE_ENV === "production" || 
+                     process.env.NODE_ENV === "prod" ||
+                     (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "dev");
+
 const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
   // Use secure cross-site cookies in production; relax for local development
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  sameSite: isProduction ? "none" : "lax",
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: isProduction,
 };
 
 const sendToken = (resp, user, code, message) => {
