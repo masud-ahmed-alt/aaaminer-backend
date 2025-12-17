@@ -9,7 +9,6 @@ import { getOTPMessage } from "./otpMessage.js";
 import User from "../models/User.js";
 
 const cookieOptions = {
-  // milliseconds: 15 days
   maxAge: 15 * 24 * 60 * 60 * 1000,
   sameSite: "none",
   httpOnly: true,
@@ -17,41 +16,72 @@ const cookieOptions = {
 };
 
 const sendToken = (resp, user, code, message) => {
-  const userWithoutPassword = user.toObject();
-  delete userWithoutPassword.password;
+  try {
+    if (!user || !user._id) {
+      throw new Error("Invalid user object: missing user or user._id");
+    }
 
-  // Create JWT
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+    const userWithoutPassword = user.toObject ? user.toObject() : { ...user };
+    delete userWithoutPassword.password;
 
-  // Send token both as cookie (for browser) and JSON (for mobile apps)
-  return resp
-    .status(code)
-    .cookie(process.env.COOKIE_NAME, token, cookieOptions)
-    .json({
-      success: true,
-      message,
-      token, // IMPORTANT FOR ANDROID
-      user: userWithoutPassword,
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
     });
+
+    if (!process.env.COOKIE_NAME) {
+      throw new Error("COOKIE_NAME is not defined in environment variables");
+    }
+
+    return resp
+      .status(code)
+      .cookie(process.env.COOKIE_NAME, token, cookieOptions)
+      .json({
+        success: true,
+        message,
+        token, 
+        user: userWithoutPassword,
+      });
+  } catch (error) {
+    console.error("Error in sendToken:", error);
+    throw error;
+  }
 };
 
 const sendEmail = async (email, subject, htmlContent, next) => {
-  const transporter = nodemailer.createTransport({
+  const smtpPort = Number(process.env.SMTP_PORT) || 465;
+  const isSecure = smtpPort === 465;
+  
+  const transporterConfig = {
     host: process.env.SMTP_HOST,
-    service: process.env.SMTP_SERVICE,
-    port: process.env.SMTP_PORT,
+    port: smtpPort,
+    secure: isSecure,
+    requireTLS: !isSecure,
     auth: {
       user: process.env.SMTP_MAIL,
       pass: process.env.SMTP_PASSWORD,
     },
-    dkim: {
-      domainName: process.env.DOMAIN,
-      keySelector: process.env.KEY_SELECTOR,
-      privateKey: process.env.DKIM_PRIVATE_KEY,
-    },
-  });
+    connectionTimeout: 60000,
+    greetingTimeout: 30000,
+    socketTimeout: 60000,
+  };
+
+  const domain = process.env.DOMAIN || (process.env.SMTP_MAIL ? process.env.SMTP_MAIL.split('@')[1] : null);
+  const keySelector = process.env.KEY_SELECTOR;
+  const privateKey = process.env.DKIM_PRIVATE_KEY;
+
+  if (domain && keySelector && privateKey && privateKey.trim()) {
+    transporterConfig.dkim = {
+      domainName: domain,
+      keySelector: keySelector,
+      privateKey: privateKey.replace(/\\n/g, '\n'),
+    };
+  }
+
+  const transporter = nodemailer.createTransport(transporterConfig);
 
   const mailOptions = {
     from: process.env.SMTP_MAIL,
@@ -63,7 +93,13 @@ const sendEmail = async (email, subject, htmlContent, next) => {
   try {
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error(error);
+    console.error('SMTP Error:', {
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      host: process.env.SMTP_HOST,
+      port: smtpPort,
+    });
     return new Error("Failed to send email");
   }
 };
@@ -121,28 +157,19 @@ const sendTelegramMessage = (message, imagePath) => {
   const bot = new TelegramBot(token, { polling: false });
 
   if (imagePath) {
-    // Check if the file exists
     if (!fs.existsSync(imagePath)) {
       console.error("Image file not found:", imagePath);
       return;
     }
 
-    // Send the image with a caption
     bot
       .sendPhoto(chatId, fs.createReadStream(imagePath), { caption: message })
-      .then(() => {
-        console.log("Telegram image message sent successfully");
-      })
       .catch((error) => {
         console.error("Error sending telegram image message:", error);
       });
   } else {
-    // Send a text message only
     bot
       .sendMessage(chatId, message, { parse_mode: "HTML" })
-      .then(() => {
-        console.log("Telegram text message sent successfully");
-      })
       .catch((error) => {
         console.error("Error sending telegram text message:", error);
       });
@@ -158,26 +185,24 @@ const findSuspectedUser = async () => {
     "live.com",
   ];
 
-  const extraDotsRegex = /^[^.]+(\.{2,})[^@]+@/;
-  const tooManySegmentsRegex = /^[^.]+(\.[^.]+){2,}@/;
+  const suspiciousEmailRegex = new RegExp(
+    `^(?:[^@\\s]+(?:\\.[^@\\s]+)*|"(?:[^"\\\\]|\\\\.)*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|(?:\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\]))$`,
+    "i"
+  );
+
+  const usernameSuspicionRegex = /[.]{2,}|[^\w.@-]/;
+
   const unknownDomainRegex = new RegExp(
     `@(?!(${knownDomains.join("|")})$).*`,
     "i"
   );
 
-  const nameWithExtraDotsRegex = /(\.{2,})/;
-  const nameTooManySegmentsRegex = /(\.[^.]+){2,}/;
-  const nameNonAlphanumericRegex = /[^a-zA-Z0-9\s.-]/;
-
   const suspectedUsers = await User.find({
     $or: [
-      { email: { $regex: extraDotsRegex } },
-      { email: { $regex: tooManySegmentsRegex } },
+      { email: { $not: suspiciousEmailRegex } },
+      { email: { $regex: usernameSuspicionRegex } },
       { email: { $regex: unknownDomainRegex } },
-
-      { name: { $regex: nameWithExtraDotsRegex } },
-      { name: { $regex: nameTooManySegmentsRegex } },
-      { name: { $regex: nameNonAlphanumericRegex } },
+      { name: { $regex: /[.]{2,}|[^a-zA-Z0-9\s.-]/ } },
     ],
   });
 
@@ -192,15 +217,14 @@ const generateUsername = async () => {
   for (let i = 0; i < 6; i++) {
     username += chars[Math.floor(Math.random() * chars.length)];
   }
-  // Ensure at least one number
   username += numbers[Math.floor(Math.random() * numbers.length)];
-  // Shuffle the username to randomize number placement
   username = username
     .split("")
     .sort(() => 0.5 - Math.random())
     .join("");
   return username;
 };
+
 const extractName = async (email) => {
   if (!email || typeof email !== "string") return null;
   return email.split("@")[0];
@@ -216,7 +240,6 @@ const resetSpinLimits = async () => {
       {},
       { $set: { dailySpinLimit: 17, freeSpinLimit: 3 } }
     );
-    console.info("Spin limits reset successfully for all users.");
   } catch (error) {
     console.error("Error resetting spin limits:", error);
   }

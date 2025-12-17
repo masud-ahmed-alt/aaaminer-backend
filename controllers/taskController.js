@@ -2,6 +2,7 @@ import { catchAsyncError } from "../middlewares/errorMiddleware.js";
 import ScratchCard from "../models/ScratchCard.js";
 import Task from "../models/Task.js";
 import User from "../models/User.js";
+import Settings from "../models/Settings.js";
 import {
   getActivityLog,
   getAvailableScratchCard,
@@ -10,10 +11,13 @@ import {
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import Carousel from "../models/Carousel.js";
-import TopTenUsers from "../models/TopTenUsers.js";
+import { logger } from "../utils/logger.js";
 
 const createTask = async () => {
   try {
+    // Get settings from database
+    const settings = await Settings.getSettings();
+    
     const taskNameTemplates = [
       "Unlock hidden treasure",
       "Defend your kingdom",
@@ -31,22 +35,26 @@ const createTask = async () => {
     const shuffledTemplates = taskNameTemplates.sort(() => Math.random() - 0.5);
     const tasks = [];
 
-    // No high-reward special tasks: all tasks use the standard reward range
+    // Use settings from database
+    const taskCount = settings.taskCount || 10;
+    const minPoints = settings.taskMinPoints || 40;
+    const maxPoints = settings.taskMaxPoints || 65;
 
-    for (let i = 0; i < 10; i++) {
-      let rewardPoints;
-
-      // Assign standard reward points (40–65) to every task
-      rewardPoints = Math.floor(Math.random() * (65 - 40 + 1)) + 40;
+    for (let i = 0; i < taskCount; i++) {
+      // Use template if available, otherwise use generic name
+      const taskName = shuffledTemplates[i] || `Task ${i + 1}`;
+      
+      // Generate random points within configured range
+      const rewardPoints = Math.floor(Math.random() * (maxPoints - minPoints + 1)) + minPoints;
 
       tasks.push({
-        taskName: shuffledTemplates[i],
+        taskName,
         rewardPoints,
       });
     }
 
     await Task.insertMany(tasks);
-    getActivityLog("New tasks generated successfully.");
+    getActivityLog(`New ${taskCount} tasks generated successfully with points range ${minPoints}-${maxPoints}.`);
   } catch (error) {
     getActivityLog("Failed to generate new tasks: " + error.message);
   }
@@ -54,10 +62,18 @@ const createTask = async () => {
 
 const createScratchCard = async () => {
   try {
-    // Generate 4 random points between 30–40
+    // Get settings from database
+    const settings = await Settings.getSettings();
+    
+    // Use settings from database
+    const cardCount = settings.scratchCardCount || 4;
+    const minPoints = settings.scratchCardMinPoints || 30;
+    const maxPoints = settings.scratchCardMaxPoints || 40;
+
+    // Generate random points within configured range
     const randomPoints = Array.from(
-      { length: 4 },
-      () => Math.floor(Math.random() * (40 - 30 + 1)) + 30
+      { length: cardCount },
+      () => Math.floor(Math.random() * (maxPoints - minPoints + 1)) + minPoints
     );
 
     // Shuffle the points for randomness
@@ -69,9 +85,9 @@ const createScratchCard = async () => {
     }));
 
     await ScratchCard.insertMany(scratchCards);
-    getActivityLog("New Scratch Cards generated.....");
+    getActivityLog(`New ${cardCount} Scratch Cards generated with points range ${minPoints}-${maxPoints}.`);
   } catch (error) {
-    getActivityLog(`Failed to create scratch card.`);
+    getActivityLog(`Failed to create scratch card: ${error.message}`);
   }
 };
 
@@ -95,14 +111,12 @@ export const getRanking = catchAsyncError(async (req, res, next) => {
         break;
 
       case "toppers":
-        const topUsers = await TopTenUsers.find()
-          .populate("user", "name walletPoints -_id")
+        // Top users based on wallet points
+        users = await User.find({ isBanned: false, isverified: true })
+          .select("name walletPoints -_id")
+          .sort({ walletPoints: -1 })
+          .limit(10)
           .lean();
-
-        users = topUsers.map((entry) => ({
-          name: entry.user?.name || "Unknown",
-          walletPoints: entry.user?.walletPoints || 0,
-        }));
         break;
 
       default:
@@ -129,13 +143,11 @@ export const generateDailyTasks = catchAsyncError(async () => {
   if (task.length > 0) {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
-      console.log("Existing Task deleted");
+      logger.info("Existing tasks deleted, creating new tasks");
       await createTask();
-    } else {
-      console.log("No tasks to deleted");
     }
-  } else if (task.length === 0) {
-    console.log("No existing tasks found. Creating new tasks...");
+  } else {
+    logger.info("No existing tasks found, creating new tasks");
     await createTask();
   }
 });
@@ -145,12 +157,10 @@ export const generateScratchCard = catchAsyncError(async () => {
   if (scratchCards.length > 0) {
     const deleteScratchCard = await ScratchCard.deleteMany({});
     if (deleteScratchCard.deletedCount > 0) {
-      console.log("Existing Scratch Cards deleted");
+      logger.info("Existing scratch cards deleted, creating new ones");
       await createScratchCard();
-    } else {
-      console.log("No Scratch Cards to delete");
     }
-  } else if (scratchCards.length === 0) {
+  } else {
     await createScratchCard();
   }
 });
@@ -167,7 +177,10 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
           404
         )
       );
-    res.status(200).json({ tasks });
+    res.status(200).json({ 
+      success: true,
+      tasks 
+    });
   } catch (error) {
     console.error("Error fetching user tasks");
     return next(new ErrorHandler("Internal server error", 500));
@@ -186,7 +199,10 @@ export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
           404
         )
       );
-    res.status(200).json({ scratchCard });
+    res.status(200).json({ 
+      success: true,
+      scratchCard 
+    });
   } catch (error) {
     console.error("Error fetching user scratchCard");
     return next(new ErrorHandler("Internal server error", 500));

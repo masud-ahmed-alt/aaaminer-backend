@@ -7,4 +7,8 @@ const taskSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Add indexes for performance
+taskSchema.index({ completedBy: 1 });
+taskSchema.index({ createdAt: -1 });
+
 export default mongoose.model('Task', taskSchema);
