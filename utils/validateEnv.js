@@ -10,9 +10,7 @@ const requiredEnvVars = [
 const optionalEnvVars = [
   'PORT',
   'NODE_ENV',
-  'LOCALHOST',
-  'FRONTEND_URL1',
-  'FRONTEND_URL2',
+  'CORS_ORIGINS',
   'TEL_BOT_TOKEN',
   'CHAT_ID',
   // Cloudinary configuration (optional, falls back to local storage if missing)

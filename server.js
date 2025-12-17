@@ -38,13 +38,25 @@ try {
   process.exit(1);
 }
 
-const allowedOrigins = [
+// Build allowed CORS origins from env
+// Primary: CORS_ORIGINS="https://a.com,https://b.com"
+// Legacy support: LOCALHOST, FRONTEND_URL1, FRONTEND_URL2
+const corsOriginsEnv = process.env.CORS_ORIGINS || "";
+const corsOrigins = corsOriginsEnv
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean)
+  .map((url) => url.replace(/\/$/, ""));
+
+const legacyOrigins = [
   process.env.LOCALHOST,
   process.env.FRONTEND_URL1,
   process.env.FRONTEND_URL2,
 ]
   .filter(Boolean)
-  .map((url) => url?.replace(/\/$/, ""));
+  .map((url) => url.replace(/\/$/, ""));
+
+const allowedOrigins = Array.from(new Set([...corsOrigins, ...legacyOrigins]));
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const allowNoOrigin = true;
