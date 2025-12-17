@@ -23,6 +23,7 @@ import { unbanMailMsg } from "../utils/unbanMessage.js";
 import bcrypt from "bcryptjs";
 import RedeemCode from "../models/RedeemCode.js";
 import mongoose from "mongoose";
+import { cloudinary, isCloudinaryConfigured } from "../utils/cloudinary.js";
 
 const activeUsers = new Set();
 
@@ -477,7 +478,7 @@ export const getCarousalImages = catchAsyncError(async (req, res, next) => {
   
   const updatedCarousal = carousal.map((item) => ({
     _id: item._id,
-    url: `${baseUrl}${item.url}`,
+    url: /^https?:\/\//i.test(item.url) ? item.url : `${baseUrl}${item.url}`,
     createdAt: item.createdAt,
   }));
 
@@ -499,8 +500,40 @@ export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
     if (!req.file) {
       return next(new ErrorHandler("No file uploaded", 400));
     }
-    const fileUrl = `uploads/${type}/${req.file.filename}`;
-    const carousal = new Carousel({ url: fileUrl });
+
+    // Default to local file URL
+    const localFilePath = `uploads/${type}/${req.file.filename}`;
+    let finalUrl = localFilePath;
+    let publicId = null;
+
+    // If Cloudinary is configured, upload the file there
+    if (isCloudinaryConfigured) {
+      try {
+        const folder =
+          process.env.CLOUDINARY_CAROUSAL_FOLDER ||
+          process.env.CLOUDINARY_FOLDER ||
+          "carousal";
+
+        const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+          folder,
+        });
+
+        finalUrl = uploadResult.secure_url;
+        publicId = uploadResult.public_id;
+
+        // Clean up local file after successful Cloudinary upload
+        fs.unlink(req.file.path, (unlinkErr) => {
+          if (unlinkErr) {
+            logger.warn("Failed to delete local carousel image after Cloudinary upload", unlinkErr);
+          }
+        });
+      } catch (cloudErr) {
+        logger.error("Cloudinary upload failed, falling back to local file storage", cloudErr);
+        // Keep using localFilePath in case of failure
+      }
+    }
+
+    const carousal = new Carousel({ url: finalUrl, publicId });
     await carousal.save();
 
     res.status(201).json({
@@ -516,16 +549,41 @@ export const deleteCarousalImage = catchAsyncError(async (req, res, next) => {
   if (!carousal) {
     return next(new ErrorHandler("Carousal not found", 404));
   }
-  let filePath = carousal.url;
-  fs.unlink(filePath, async (err) => {
-    if (err) {
-      return next(new ErrorHandler("Failed to delete the file", 500));
+
+  const url = carousal.url || "";
+  const isRemote = /^https?:\/\//i.test(url);
+
+  // If the image was stored in Cloudinary, try to delete it there first
+  if (carousal.publicId && isCloudinaryConfigured) {
+    try {
+      await cloudinary.uploader.destroy(carousal.publicId);
+    } catch (cloudErr) {
+      // Log but don't block deletion if Cloudinary fails
+      logger.error("Failed to delete carousel image from Cloudinary", cloudErr);
     }
-    await carousal.deleteOne();
-    res.status(200).json({
-      success: true,
-      message: "Carousal image deleted successfully",
+  }
+
+  // For locally stored images, also remove the file from disk
+  if (!isRemote && url) {
+    fs.unlink(url, async (err) => {
+      if (err && err.code !== "ENOENT") {
+        return next(new ErrorHandler("Failed to delete the file", 500));
+      }
+
+      await carousal.deleteOne();
+      res.status(200).json({
+        success: true,
+        message: "Carousal image deleted successfully",
+      });
     });
+    return;
+  }
+
+  // If there is no local file (e.g., Cloudinary-only), just remove the DB record
+  await carousal.deleteOne();
+  res.status(200).json({
+    success: true,
+    message: "Carousal image deleted successfully",
   });
 });
 

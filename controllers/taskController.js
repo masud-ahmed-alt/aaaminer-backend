@@ -302,7 +302,7 @@ export const getCarousal = catchAsyncError(async (req, res, next) => {
   const baseUrl = `${req.protocol}://${host}${isLocal || isIp ? "/" : "/api/"}`;
   const updatedCarousal = carousal.map((item) => ({
     id: item._id,
-    url: `${baseUrl}${item.url}`,
+    url: /^https?:\/\//i.test(item.url) ? item.url : `${baseUrl}${item.url}`,
   }));
 
   res.status(200).json({

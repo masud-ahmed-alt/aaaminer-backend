@@ -15,6 +15,12 @@ const optionalEnvVars = [
   'FRONTEND_URL2',
   'TEL_BOT_TOKEN',
   'CHAT_ID',
+  // Cloudinary configuration (optional, falls back to local storage if missing)
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+  'CLOUDINARY_FOLDER',
+  'CLOUDINARY_CAROUSAL_FOLDER',
 ];
 
 export const validateEnv = () => {
