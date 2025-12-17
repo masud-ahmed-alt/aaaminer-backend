@@ -13,15 +13,26 @@ const isProduction = process.env.NODE_ENV === "production" ||
                      process.env.NODE_ENV === "prod" ||
                      (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "dev");
 
+// For cross-domain cookies to work, we need SameSite=None with Secure=true
+// Since secure is always true (HTTPS required), use SameSite=None for production
 const cookieOptions = {
   maxAge: 15 * 24 * 60 * 60 * 1000,
-  // Use secure cross-site cookies in production; relax for local development
-  sameSite: isProduction ? "none" : "lax",
+  sameSite: isProduction ? "none" : "lax", // "none" required for cross-domain with secure cookies
   httpOnly: true,
-  secure: true,
+  secure: true, // Always true for HTTPS
   path: "/", // Explicitly set path to root for cross-domain cookies
   // Don't set domain - let browser use the domain that sets it (rewardplus.cloud)
 };
+
+// Log cookie configuration on startup for debugging
+if (isProduction) {
+  console.log("🍪 Cookie config (production):", {
+    sameSite: cookieOptions.sameSite,
+    secure: cookieOptions.secure,
+    path: cookieOptions.path,
+    httpOnly: cookieOptions.httpOnly,
+  });
+}
 
 const sendToken = (resp, user, code, message) => {
   try {

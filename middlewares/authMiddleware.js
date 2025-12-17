@@ -96,6 +96,18 @@ export const isAdmin = async (req, res, next) => {
       }
     }
 
+    // Debug logging for cookie issues
+    if (!token && process.env.NODE_ENV === "production") {
+      console.log("🔍 isAdmin: No token found", {
+        hasCookies: !!req.cookies,
+        cookieName: process.env.COOKIE_NAME,
+        cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
+        hasAuthHeader: !!req.headers.authorization,
+        hasCookieHeader: !!req.headers.cookie,
+        origin: req.headers.origin,
+      });
+    }
+
     if (!token) {
       return next(new ErrorHandler("Please login to access this resource!", 401));
     }
