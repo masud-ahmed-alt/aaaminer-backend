@@ -11,6 +11,7 @@ import {
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import Carousel from "../models/Carousel.js";
+import { logger } from "../utils/logger.js";
 
 const createTask = async () => {
   try {
@@ -142,13 +143,11 @@ export const generateDailyTasks = catchAsyncError(async () => {
   if (task.length > 0) {
     const deleteTask = await Task.deleteMany({});
     if (deleteTask.deletedCount > 0) {
-      console.log("Existing Task deleted");
+      logger.info("Existing tasks deleted, creating new tasks");
       await createTask();
-    } else {
-      console.log("No tasks to deleted");
     }
-  } else if (task.length === 0) {
-    console.log("No existing tasks found. Creating new tasks...");
+  } else {
+    logger.info("No existing tasks found, creating new tasks");
     await createTask();
   }
 });
@@ -158,12 +157,10 @@ export const generateScratchCard = catchAsyncError(async () => {
   if (scratchCards.length > 0) {
     const deleteScratchCard = await ScratchCard.deleteMany({});
     if (deleteScratchCard.deletedCount > 0) {
-      console.log("Existing Scratch Cards deleted");
+      logger.info("Existing scratch cards deleted, creating new ones");
       await createScratchCard();
-    } else {
-      console.log("No Scratch Cards to delete");
     }
-  } else if (scratchCards.length === 0) {
+  } else {
     await createScratchCard();
   }
 });

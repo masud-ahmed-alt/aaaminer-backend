@@ -20,7 +20,6 @@ import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import { homePage } from "./utils/homePage.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
-import { instantRedeemCron } from "./automation/redeemAuto.js";
 import { validateEnv } from "./utils/validateEnv.js";
 import { logger } from "./utils/logger.js";
 import { sanitizeBody } from "./middlewares/validationMiddleware.js";
@@ -39,19 +38,15 @@ try {
   process.exit(1);
 }
 
-// Build allowed origins, normalize by removing trailing slashes
 const allowedOrigins = [
   process.env.LOCALHOST,
   process.env.FRONTEND_URL1,
   process.env.FRONTEND_URL2,
 ]
-  .filter(Boolean) // remove null/undefined
-  .map((url) => url?.replace(/\/$/, "")); // remove trailing slash
+  .filter(Boolean)
+  .map((url) => url?.replace(/\/$/, ""));
 
 const isDevelopment = process.env.NODE_ENV === "development";
-// Android apps don't send Origin headers, so we must allow requests without origin
-// Mobile apps (Android/iOS) don't send Origin headers, so we always allow them
-// The ALLOW_MOBILE_NO_ORIGIN env var is ignored - mobile apps are always allowed
 const allowNoOrigin = true;
 
 logger.info(`Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}`);
@@ -61,9 +56,7 @@ logger.info(`Allow requests without origin: ${allowNoOrigin ? "YES (for mobile a
 app.use(
   cors({
     origin: function (origin, callback) {
-      // For requests without origin (like mobile apps, Postman, etc.)
       if (!origin) {
-        // Allow mobile app requests - Android apps don't send Origin headers
         if (allowNoOrigin) {
           logger.debug("CORS: Allowing request without origin (mobile app)");
           callback(null, true);
@@ -74,17 +67,14 @@ app.use(
         return;
       }
 
-      // Remove trailing slash from origin for comparison
       const normalizedOrigin = origin.replace(/\/$/, "");
 
-      // Check if origin is in allowed list
       if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
-        // In development mode, log and allow; in production, reject
         if (isDevelopment) {
           logger.warn(`CORS: Allowing non-allowed origin in development: ${origin}`);
-          callback(null, true); // Allow in development for testing
+          callback(null, true);
         } else {
           logger.error(`CORS blocked origin: ${origin}`);
           callback(new Error("Not allowed by CORS"));
@@ -129,7 +119,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      // Allow requests without origin (mobile apps)
       if (!origin) {
         if (allowNoOrigin) {
           callback(null, true);
@@ -138,12 +127,10 @@ const io = new Server(server, {
         }
         return;
       }
-      // Check allowed origins
       const normalizedOrigin = origin.replace(/\/$/, "");
       if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
-        // In development, allow any origin for testing
         if (isDevelopment) {
           callback(null, true);
         } else {
@@ -161,21 +148,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// seedUsers(150)
-
 // Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 
-// Error Middleware
 app.use(errorMiddleware);
-
-// Setup socket events
 setupSocketEvents(io);
-
-// Handle uncaught exceptions and rejections
 process.on("uncaughtException", (err) => {
   logger.error("Uncaught Exception", err);
   process.exit(1);
@@ -191,9 +171,8 @@ app.get("/", (req, resp) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || '0.0.0.0'; // Listen on all network interfaces
+const HOST = process.env.HOST || '0.0.0.0';
 server.listen(PORT, HOST, () => {
   logger.success(`Server running on ${HOST}:${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
-  logger.info(`Accessible from network at: http://192.168.1.4:${PORT}`);
 });

@@ -1,8 +1,3 @@
-/**
- * Environment Variable Validation
- * Validates all required environment variables on server startup
- */
-
 const requiredEnvVars = [
   'MONGO_URI',
   'JWT_SECRET',
@@ -41,13 +36,12 @@ export const validateEnv = () => {
   });
 
   if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:');
+    const errorMsg = `Missing required environment variables: ${missing.join(', ')}`;
+    console.error(`❌ ${errorMsg}`);
     missing.forEach((varName) => {
       console.error(`   - ${varName}`);
     });
-    throw new Error(
-      `Missing required environment variables: ${missing.join(', ')}`
-    );
+    throw new Error(errorMsg);
   }
 
   if (warnings.length > 0) {
@@ -57,7 +51,6 @@ export const validateEnv = () => {
     });
   }
 
-  // Validate specific formats
   if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
     console.warn('⚠️  JWT_SECRET should be at least 32 characters long');
   }
@@ -66,14 +59,11 @@ export const validateEnv = () => {
     throw new Error('PORT must be a valid number');
   }
 
-  // Validate DKIM configuration (all or none)
   const dkimVars = ['DOMAIN', 'KEY_SELECTOR', 'DKIM_PRIVATE_KEY'];
   const dkimVarsPresent = dkimVars.filter(varName => process.env[varName] && process.env[varName].trim()).length;
   if (dkimVarsPresent > 0 && dkimVarsPresent < dkimVars.length) {
     console.warn('⚠️  DKIM configuration is incomplete. Either provide all DKIM variables (DOMAIN, KEY_SELECTOR, DKIM_PRIVATE_KEY) or none.');
     console.warn('   Note: DOMAIN will be extracted from SMTP_MAIL if not provided.');
   }
-
-  console.log('✅ Environment variables validated successfully');
 };
 

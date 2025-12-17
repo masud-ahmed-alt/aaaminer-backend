@@ -18,6 +18,7 @@ import {
 } from "../utils/features.js";
 import { ErrorHandler } from "../utils/utility.js";
 import { banMailMsg } from "../utils/banMessage.js";
+import { logger } from "../utils/logger.js";
 import { unbanMailMsg } from "../utils/unbanMessage.js";
 import bcrypt from "bcryptjs";
 import RedeemCode from "../models/RedeemCode.js";
@@ -492,7 +493,7 @@ export const uploadCarousalImage = catchAsyncError(async (req, res, next) => {
 
   upload(req, res, async (err) => {
     if (err) {
-      console.log(err);
+      logger.error("File upload failed", err);
       return next(new ErrorHandler(`File upload failed`, 400));
     }
     if (!req.file) {
@@ -1035,7 +1036,7 @@ export const scanUser = async () => {
       scannedCount++;
     }
 
-    console.log(`User scan completed: ${scannedCount} suspected users found, ${markedForReview} marked for review`);
+    logger.info(`User scan completed: ${scannedCount} suspected users found, ${markedForReview} marked for review`);
     
     // Send notification if significant number of suspected users found
     if (suspectedUsers.length > 10) {
