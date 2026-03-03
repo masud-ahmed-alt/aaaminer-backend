@@ -10,9 +10,9 @@ import User from "../models/User.js";
 import { logger } from "./logger.js";
 
 // Determine if we're in production (check multiple ways)
-const isProduction = process.env.NODE_ENV === "production" || 
-                     process.env.NODE_ENV === "prod" ||
-                     (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "dev");
+const isProduction = process.env.NODE_ENV === "production" ||
+  process.env.NODE_ENV === "prod" ||
+  (process.env.NODE_ENV !== "development" && process.env.NODE_ENV !== "dev");
 
 // For cross-domain cookies to work, we need SameSite=None with Secure=true
 // In production (HTTPS): sameSite="none" and secure=true
@@ -42,7 +42,7 @@ const sendToken = (resp, user, code, message) => {
     }
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+      expiresIn: "15d",
     });
 
     if (!process.env.COOKIE_NAME) {
@@ -55,7 +55,7 @@ const sendToken = (resp, user, code, message) => {
       .json({
         success: true,
         message,
-        token, 
+        token,
         user: userWithoutPassword,
       });
   } catch (error) {
@@ -67,7 +67,7 @@ const sendToken = (resp, user, code, message) => {
 const sendEmail = async (email, subject, htmlContent, next) => {
   const smtpPort = Number(process.env.SMTP_PORT) || 465;
   const isSecure = smtpPort === 465;
-  
+
   const transporterConfig = {
     host: process.env.SMTP_HOST,
     port: smtpPort,
