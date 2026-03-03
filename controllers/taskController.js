@@ -17,7 +17,7 @@ const createTask = async () => {
   try {
     // Get settings from database
     const settings = await Settings.getSettings();
-    
+
     const taskNameTemplates = [
       "Unlock hidden treasure",
       "Defend your kingdom",
@@ -43,7 +43,7 @@ const createTask = async () => {
     for (let i = 0; i < taskCount; i++) {
       // Use template if available, otherwise use generic name
       const taskName = shuffledTemplates[i] || `Task ${i + 1}`;
-      
+
       // Generate random points within configured range
       const rewardPoints = Math.floor(Math.random() * (maxPoints - minPoints + 1)) + minPoints;
 
@@ -64,7 +64,7 @@ const createScratchCard = async () => {
   try {
     // Get settings from database
     const settings = await Settings.getSettings();
-    
+
     // Use settings from database
     const cardCount = settings.scratchCardCount || 4;
     const minPoints = settings.scratchCardMinPoints || 30;
@@ -174,9 +174,9 @@ export const getUserTasks = catchAsyncError(async (req, res, next) => {
           404
         )
       );
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      tasks 
+      tasks
     });
   } catch (error) {
     logger.error("Error fetching user tasks", error);
@@ -196,9 +196,9 @@ export const getUserScratchCards = catchAsyncError(async (req, res, next) => {
           404
         )
       );
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      scratchCard 
+      scratchCard
     });
   } catch (error) {
     logger.error("Error fetching user scratchCard", error);
@@ -249,6 +249,10 @@ export const completeScratchCard = catchAsyncError(async (req, res, next) => {
   try {
     const { scratchId } = req.body;
     const userId = req.user;
+
+    if (!scratchId || scratchId.trim() === "" || !/^[0-9a-fA-F]{24}$/.test(scratchId)) {
+      return next(new ErrorHandler("Invalid or missing Scratch Card ID", 400));
+    }
 
     const scratchCard = await ScratchCard.findById(scratchId);
     if (!scratchCard) {
