@@ -10,16 +10,22 @@ import {
     userBanActions,
     userGrowData, userReviewActions, withdrawHistory,
     withdrawRequestActions,
-    withdrawRequestDelete
+    withdrawRequestDelete,
+    createTask, getAllTasks, getTask, updateTask, deleteTask
 } from "../controllers/adminController.js";
 import { isAdmin } from "../middlewares/authMiddleware.js";
+
+import { createRateLimiter } from "../microservices/apiLimiter.js";
 
 const router = express.Router();
 
 // Login a user
-router.post('/login', adminLogin);
+router.post('/login', createRateLimiter({
+    max: 5,
+    message: "Too many login attempts. Please try again later.",
+}), adminLogin);
 router.post('/register', adminRegister);
-router.get('/logout',isAdmin, adminLogout);
+router.get('/logout', isAdmin, adminLogout);
 
 router.get("/me", isAdmin, adminProfile)
 router.get("/all-users", isAdmin, allUsers)
@@ -52,5 +58,12 @@ router.put("/user-review-action/:userId", isAdmin, userReviewActions);
 router.delete("/delete-request", isAdmin, withdrawRequestDelete)
 
 router.post("/add-redeem-code", isAdmin, addRedeemCode)
+
+// Task CRUD routes
+router.post("/task", isAdmin, createTask);
+router.get("/tasks", isAdmin, getAllTasks);
+router.get("/task/:id", isAdmin, getTask);
+router.put("/task/:id", isAdmin, updateTask);
+router.delete("/task/:id", isAdmin, deleteTask);
 
 export default router;

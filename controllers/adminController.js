@@ -7,6 +7,7 @@ import Carousel from "../models/Carousel.js";
 import HomeNotification from "../models/HomeNotification.js";
 import User from "../models/User.js";
 import Withdraw from "../models/Withdraw.js";
+import Task from "../models/Task.js";
 import { announcementMsg } from "../utils/announcementMsg.js";
 import {
   cookieOptions,
@@ -106,16 +107,18 @@ export const allUsers = catchAsyncError(async (req, res, next) => {
 
   // Search parameter
   const search = req.query.search ? req.query.search.trim() : "";
+  const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const safeSearch = escapeRegex(search);
 
   // Build search filter
-  const searchFilter = search
+  const searchFilter = safeSearch
     ? {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { username: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-        ],
-      }
+      $or: [
+        { name: { $regex: safeSearch, $options: "i" } },
+        { username: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+      ],
+    }
     : {};
 
   // Get total count with filter
@@ -467,13 +470,13 @@ export const getSingleUser = catchAsyncError(async (req, res, next) => {
 
 export const getCarousalImages = catchAsyncError(async (req, res, next) => {
   const carousal = await Carousel.find().select("url _id createdAt").sort("-createdAt");
-  
+
   const host = req.get("host");
   const hostname = host.split(":")[0];
   const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
   const isIp = /^[0-9.]+$/.test(hostname);
   const baseUrl = `${req.protocol}://${host}${isLocal || isIp ? "/" : "/api/"}`;
-  
+
   const updatedCarousal = carousal.map((item) => ({
     _id: item._id,
     url: /^https?:\/\//i.test(item.url) ? item.url : `${baseUrl}${item.url}`,
@@ -1101,3 +1104,82 @@ export const scanUser = async () => {
     logger.error("Error in user scanning", error);
   }
 };
+
+// --- Task CRUD ---
+export const createTask = catchAsyncError(async (req, res, next) => {
+  const { taskName, rewardPoints } = req.body;
+
+  if (!taskName || rewardPoints === undefined) {
+    return next(new ErrorHandler("Please provide taskName and rewardPoints", 400));
+  }
+
+  const task = await Task.create({ taskName, rewardPoints: Number(rewardPoints) });
+
+  res.status(201).json({
+    success: true,
+    message: "Task created successfully",
+    task,
+  });
+});
+
+export const getAllTasks = catchAsyncError(async (req, res, next) => {
+  const tasks = await Task.find().sort("-createdAt");
+
+  res.status(200).json({
+    success: true,
+    tasks,
+  });
+});
+
+export const getTask = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const task = await Task.findById(id);
+
+  if (!task) {
+    return next(new ErrorHandler("Task not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    task,
+  });
+});
+
+export const updateTask = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const { taskName, rewardPoints } = req.body;
+
+  let task = await Task.findById(id);
+
+  if (!task) {
+    return next(new ErrorHandler("Task not found", 404));
+  }
+
+  if (taskName !== undefined) task.taskName = taskName;
+  if (rewardPoints !== undefined) task.rewardPoints = Number(rewardPoints);
+
+  await task.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Task updated successfully",
+    task,
+  });
+});
+
+export const deleteTask = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+
+  const task = await Task.findById(id);
+
+  if (!task) {
+    return next(new ErrorHandler("Task not found", 404));
+  }
+
+  await task.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Task deleted successfully",
+  });
+});
