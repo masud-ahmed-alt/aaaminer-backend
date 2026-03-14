@@ -541,7 +541,7 @@ export const withdrawRequest = catchAsyncError(async (req, res, next) => {
   }
 
   // Step 12: Calculate amount and process withdrawal
-  const amount = wallet * 0.001;
+  const amount = wallet * 0.0005;
   userData.walletPoints -= wallet;
 
   await Withdraw.create({
